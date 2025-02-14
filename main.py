@@ -8,13 +8,9 @@ from flask_mail import Mail, Message
 import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 i = 5
 
-
-
 DB_FILE = 'admin_database.db'
-
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -23,15 +19,16 @@ STATIC_IMAGES_PATH = os.path.join('static', 'images')
 EXPORT_PATH = os.path.join('exports')
 EXPORT_FILE = os.path.join(EXPORT_PATH, 'inventory_export.xlsx')
 
-
-
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'samplebookshopnyp@gmail.com'  # Replace with your email
-app.config['MAIL_PASSWORD'] = 'vtxd xdyr gkkf kuys'        # Replace with your email password
+app.config[
+    'MAIL_USERNAME'] = 'samplebookshopnyp@gmail.com'  # Replace with your email
+app.config[
+    'MAIL_PASSWORD'] = 'vtxd xdyr gkkf kuys'  # Replace with your email password
 
 mail = Mail(app)
+
 
 # Initialize sales data in the shelve database
 def initialize_sales_db():
@@ -40,42 +37,45 @@ def initialize_sales_db():
             db['sales'] = {}  # Key: ISBN, Value: List of sales transactions
 
 
-
 @app.route('/simulate_purchase/<isbn>', methods=['POST'])
 def simulate_purchase(isbn):
     with shelve.open(DATABASE, writeback=True) as db:
         books = db.get('books', {})
         sales = db.get('sales', {})
-        
+
         if isbn in books:
             books[isbn]['stock'] -= 1
-            flash(f"Simulated purchase for '{books[isbn]['title']}'. New stock: {books[isbn]['stock']}", 'info')
-            
+            flash(
+                f"Simulated purchase for '{books[isbn]['title']}'. New stock: {books[isbn]['stock']}",
+                'info')
+
             # Log the sale
             if isbn not in sales:
                 sales[isbn] = []
-            sales[isbn].append({"date": pd.Timestamp.now().strftime("%Y-%m-%d"), "quantity": 1})
+            sales[isbn].append({
+                "date": pd.Timestamp.now().strftime("%Y-%m-%d"),
+                "quantity": 1
+            })
             db['sales'] = sales
 
             # Stock alert
             if books[isbn]['stock'] < books[isbn]['alert_stock']:
-                reorder_quantity = books[isbn]['alert_stock'] * 2 - books[isbn]['stock']
+                reorder_quantity = books[isbn]['alert_stock'] * 2 - books[
+                    isbn]['stock']
                 msg = Message(
                     subject=f"Stock Alert: {books[isbn]['title']}",
                     sender='samplebookshopnyp@gmail.com',
                     recipients=['samplebookshopnyp@gmail.com'],
-                    body=(
-                        f"The stock for the book '{books[isbn]['title']}' has fallen below the predefined threshold.\n\n"
-                        f"Current Stock: {books[isbn]['stock']}\n"
-                        f"Suggested Reorder Quantity: {reorder_quantity}\n\n"
-                        f"Please take the necessary steps to restock this item."
-                    )
-                )
+                    body=
+                    (f"The stock for the book '{books[isbn]['title']}' has fallen below the predefined threshold.\n\n"
+                     f"Current Stock: {books[isbn]['stock']}\n"
+                     f"Suggested Reorder Quantity: {reorder_quantity}\n\n"
+                     f"Please take the necessary steps to restock this item."))
                 mail.send(msg)
-                flash(f"Stock alert email sent for '{books[isbn]['title']}'.", 'info')
+                flash(f"Stock alert email sent for '{books[isbn]['title']}'.",
+                      'info')
 
     return redirect(url_for('catalog_admin'))
-
 
 
 @app.route('/generate_report')
@@ -83,18 +83,18 @@ def generate_report():
     with shelve.open(DATABASE) as db:
         books = db.get('books', {})
         sales = db.get('sales', {})
-        
+
         # Prepare data for the report
         report_data = []
         for isbn, book in books.items():
-            monthly_sales = sum(
-                sale['quantity'] for sale in sales.get(isbn, [])
-                if pd.Timestamp(sale['date']).month == pd.Timestamp.now().month
-            )
+            monthly_sales = sum(sale['quantity']
+                                for sale in sales.get(isbn, [])
+                                if pd.Timestamp(sale['date']).month ==
+                                pd.Timestamp.now().month)
             reorder_quantity = 0
             if book['stock'] < book['alert_stock']:
                 reorder_quantity = book['alert_stock'] * 2 - book['stock']
-            
+
             report_data.append({
                 "ISBN": isbn,
                 "Title": book['title'],
@@ -102,19 +102,23 @@ def generate_report():
                 "Monthly Sales": monthly_sales,
                 "Reorder Recommendation": reorder_quantity
             })
-        
+
         # Create a DataFrame
         df = pd.DataFrame(report_data)
-        
+
         # Export to Excel
         if not os.path.exists(EXPORT_PATH):
             os.makedirs(EXPORT_PATH)
-        report_file = os.path.join(EXPORT_PATH, f"inventory_report_{pd.Timestamp.now().strftime('%Y-%m')}.xlsx")
+        report_file = os.path.join(
+            EXPORT_PATH,
+            f"inventory_report_{pd.Timestamp.now().strftime('%Y-%m')}.xlsx")
         df.to_excel(report_file, index=False)
-        
-    return send_file(report_file, as_attachment=True, download_name=f"inventory_report_{pd.Timestamp.now().strftime('%Y-%m')}.xlsx")
 
-
+    return send_file(
+        report_file,
+        as_attachment=True,
+        download_name=
+        f"inventory_report_{pd.Timestamp.now().strftime('%Y-%m')}.xlsx")
 
 
 # Helper function to initialize the database
@@ -123,7 +127,6 @@ def get_db():
         if 'books' not in db:
             db['books'] = {}
         return db
-
 
 
 @app.route('/catalog_admin')
@@ -146,7 +149,9 @@ def user_catalog():
 def add_book():
     """Add a new book."""
     if request.method == 'POST':
-        required_fields = ['isbn', 'bookTitle', 'price', 'currentStock', 'alertStock']
+        required_fields = [
+            'isbn', 'bookTitle', 'price', 'currentStock', 'alertStock'
+        ]
         for field in required_fields:
             if not request.form.get(field):
                 flash(f"{field} is required.", "danger")
@@ -201,6 +206,8 @@ def fetch_isbn():
         return jsonify({"title": title, "synopsis": description})
 
     return jsonify({"error": f"Book not found for ISBN {isbn}"}), 404
+
+
 @app.route('/edit/<isbn>', methods=['GET', 'POST'])
 def edit_book(isbn):
     """Edit an existing book."""
@@ -257,25 +264,28 @@ def filter_books():
 
     with shelve.open(DATABASE) as db:
         books = db.get('books', {})
-        
+
         # If no filters are selected, return all books
         if filters.get('showAll', False):
             return jsonify({'books': list(books.values())})
-        
+
         filtered_books = []
 
         for book in books.values():
-            matches_category = (
-                (filters.get('physicalBooks') and book.get('category') == 'Physical') or
-                (filters.get('ebooks') and book.get('category') == 'E-Book') or
-                (filters.get('magazines') and book.get('category') == 'Magazine')
-            )
-            matches_eco_friendly = not filters.get('ecoFriendly') or book.get('eco_friendly', False)
+            matches_category = ((filters.get('physicalBooks')
+                                 and book.get('category') == 'Physical')
+                                or (filters.get('ebooks')
+                                    and book.get('category') == 'E-Book')
+                                or (filters.get('magazines')
+                                    and book.get('category') == 'Magazine'))
+            matches_eco_friendly = not filters.get('ecoFriendly') or book.get(
+                'eco_friendly', False)
 
             if matches_category and matches_eco_friendly:
                 filtered_books.append(book)
 
     return jsonify({'books': filtered_books})
+
 
 @app.route('/add_to_cart/<isbn>', methods=['POST'])
 def add_to_cart(isbn):
@@ -287,7 +297,12 @@ def add_to_cart(isbn):
         books = db.get('books', {})
         if isbn in books:
             cart = session['cart']
-            cart[isbn] = cart.get(isbn, {'title': books[isbn]['title'], 'price': books[isbn]['price'], 'quantity': 0})
+            cart[isbn] = cart.get(
+                isbn, {
+                    'title': books[isbn]['title'],
+                    'price': books[isbn]['price'],
+                    'quantity': 0
+                })
             cart[isbn]['quantity'] += 1
             session.modified = True
             flash(f"{books[isbn]['title']} added to your cart.", "success")
@@ -326,8 +341,9 @@ def export_excel():
 
         df.to_excel(EXPORT_FILE, index=False)
 
-    return send_file(EXPORT_FILE, as_attachment=True, download_name="inventory_export.xlsx")
-
+    return send_file(EXPORT_FILE,
+                     as_attachment=True,
+                     download_name="inventory_export.xlsx")
 
 
 #don't touch files
@@ -356,10 +372,12 @@ def add_user(name, email, password, role="user", points=0, cart=None):
 
     return user_id
 
+
 # Function to get user by ID
 def get_user(user_id):
     with shelve.open(DB_FILE) as db:
         return db.get(user_id, None)
+
 
 # Function to update user
 def update_user(user_id, updates):
@@ -371,6 +389,7 @@ def update_user(user_id, updates):
             return True
         return False
 
+
 # Function to delete user
 def delete_user(user_id):
     with shelve.open(DB_FILE) as db:
@@ -378,7 +397,6 @@ def delete_user(user_id):
             del db[user_id]
             return True
         return False
-
 
 
 # Route to update a user
@@ -392,7 +410,11 @@ def update_user_page(user_id):
             'Role': data.get('role'),
             'Points': int(data.get('points')) if data.get('points') else 0
         }
-        updates = {key: value for key, value in updates.items() if value is not None and value != ''}
+        updates = {
+            key: value
+            for key, value in updates.items()
+            if value is not None and value != ''
+        }
 
         if update_user(user_id, updates):
             return redirect(url_for('view_database'))
@@ -404,12 +426,14 @@ def update_user_page(user_id):
 
     return render_template('update_user.html', user=user_data, user_id=user_id)
 
+
 # Route to delete a user
 @app.route('/delete_user/<user_id>', methods=['POST'])
 def delete_user_page(user_id):
     if delete_user(user_id):
         return redirect(url_for('view_database'))
     return jsonify({'error': 'User not found'}), 404
+
 
 # Register route
 @app.route('/register', methods=['GET', 'POST'])
@@ -422,17 +446,18 @@ def register():
         confirm_password = data.get('confirm_password')
 
         if not (name and email and password and confirm_password):
-            return render_template('register.html', error="All fields are required!")
+            return render_template('register.html',
+                                   error="All fields are required!")
 
         if password != confirm_password:
-            return render_template('register.html', error="Passwords do not match!")
-
-      
+            return render_template('register.html',
+                                   error="Passwords do not match!")
 
         add_user(name, email, password, role="user")
         return redirect(url_for('login'))
 
     return render_template('register.html')
+
 
 # Route to add a new user
 @app.route('/add_user', methods=['GET', 'POST'])
@@ -446,20 +471,23 @@ def add_user_page():
         role = data.get('role')
 
         if not (name and email and password and confirm_password and role):
-            return render_template('add_user.html', error="Missing required fields!")
+            return render_template('add_user.html',
+                                   error="Missing required fields!")
 
         if password != confirm_password:
-            return render_template('add_user.html', error="Passwords do not match!")
+            return render_template('add_user.html',
+                                   error="Passwords do not match!")
 
         user_id = add_user(name, email, password, role)
         if not user_id:
-            return render_template('add_user.html', error="Email already exists!")
+            return render_template('add_user.html',
+                                   error="Email already exists!")
 
         return redirect(url_for('dashboard'))
 
     return render_template('add_user.html')
 
-# Login route
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -472,14 +500,18 @@ def login():
                 if user_data['Email'] == email:
                     if check_password_hash(user_data['Password'], password):
                         session['user_id'] = user_id
-                        session['role'] = user_data['Role']
-                        return redirect(url_for('dashboard'))  # Redirect to dashboard
+                        session['role'] = user_data[
+                            'Role']  # Store user role in session
+                        return redirect(
+                            url_for('dashboard'))  # Redirect to dashboard
 
-                    return render_template('login.html', error="Invalid password!")
+                    return render_template('login.html',
+                                           error="Invalid password!")
 
         return render_template('login.html', error="User not found!")
 
     return render_template('login.html')
+
 
 # Unified dashboard route
 @app.route('/admin_dashboard', methods=['GET'])
@@ -492,18 +524,24 @@ def admin_dashboard():
 def home():
     return render_template('home.html')
 
+
 # Route to view the database
 @app.route('/view_database', methods=['GET'])
 def view_database():
     with shelve.open(DB_FILE) as db:
-        users = [{"User ID": user_id, **user_data} for user_id, user_data in db.items()]
+        users = [{
+            "User ID": user_id,
+            **user_data
+        } for user_id, user_data in db.items()]
     return render_template('view_database.html', users=users)
+
 
 # Logout route
 @app.route('/logout', methods=['GET'])
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
 
 # Profile route
 @app.route('/profile', methods=['GET'])
@@ -518,11 +556,13 @@ def profile():
 
     return render_template('profile.html', user=user_data)
 
+
 @app.route('/update_my_account', methods=['GET', 'POST'])
 def update_my_account():
     user_id = session.get('user_id')  # Get logged-in user's ID
     if not user_id:
-        return redirect(url_for('login'))  # Redirect to "login" if not logged in
+        return redirect(
+            url_for('login'))  # Redirect to "login" if not logged in
 
     user_data = get_user(user_id)  # Fetch user data from the database
     if not user_data:
@@ -531,11 +571,18 @@ def update_my_account():
     if request.method == 'POST':  # Handle form submission
         data = request.form
         updates = {
-            'Name': data.get('name'),
-            'Email': data.get('email'),
-            'Password': generate_password_hash(data.get('password')) if data.get('password') else None
+            'Name':
+            data.get('name'),
+            'Email':
+            data.get('email'),
+            'Password':
+            generate_password_hash(data.get('password'))
+            if data.get('password') else None
         }
-        updates = {key: value for key, value in updates.items() if value}  # Filter empty values
+        updates = {
+            key: value
+            for key, value in updates.items() if value
+        }  # Filter empty values
 
         if update_user(user_id, updates):
             flash('Account updated successfully!', 'success')
@@ -543,13 +590,8 @@ def update_my_account():
 
         flash('Failed to update account!', 'danger')
 
-    return render_template('update_my_account.html', user=user_data)  # Show the update form
-
-
-
-
-
-
+    return render_template('update_my_account.html',
+                           user=user_data)  # Show the update form
 
 
 if __name__ == "__main__":

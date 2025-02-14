@@ -1,14 +1,77 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
 
-{% block title %}Profile{% endblock %}
+        h1, h2 {
+            color: #333;
+        }
 
-{% block content %}
+        .profile-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            text-align: left;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .action-buttons {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .action-buttons li {
+            margin-bottom: 10px;
+        }
+
+        .action-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .action-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .action-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
     <h1>My Profile</h1>
-    <div>
-        <p><strong>Name:</strong> {{ user['Name'] }}</p>
-        <p><strong>Email:</strong> {{ user['Email'] }}</p>
-        <p><strong>Role:</strong> {{ user['Role'] }}</p>
-        <p><strong>Points:</strong> {{ user['Points'] }}</p>
+    <div class="profile-container">
+        <p><strong>Name:</strong> [User Name]</p>
+        <p><strong>Email:</strong> [User Email]</p>
+        <p><strong>Role:</strong> [User Role]</p>
+        <p><strong>Points:</strong> [User Points]</p>
     </div>
 
     <h2>Actions</h2>
@@ -17,4 +80,6 @@
         <li><a href="/dashboard" class="action-button">Back to Dashboard</a></li>
         <li><a href="/logout" class="action-button">Logout</a></li>
     </ul>
-{% endblock %}
+
+</body>
+</html>

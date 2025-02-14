@@ -1,26 +1,10 @@
-{% extends "base.html" %}
- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-{% block content %}
-    <div class="login-container">
-        <h2>Login</h2>
-        <form method="POST" action="/login">
-            <div class="form-group">
-                <label for="email">Email:</label><br>
-                <input type="email" id="email" name="email" required><br><br>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label><br>
-                <input type="password" name="password" minlength="8" maxlength="20" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Login</button>
-        </form>
-
-        <p>
-
-        </p>
-    </div>
-
-    <!-- Optional Styling -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href=static/styles.css> <!-- Direct path to styles.css -->
     <style>
         .login-container {
             max-width: 400px;
@@ -29,9 +13,11 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             background-color: #f9f9f9;
+            text-align: center;
         }
         .form-group {
             margin-bottom: 15px;
+            text-align: left;
         }
         .btn {
             cursor: pointer;
@@ -43,5 +29,31 @@
             background-color: #007BFF;
             color: #fff;
         }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
-{% endblock %}
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>Login</h2>
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" required><br><br>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label><br>
+                <input type="password" name="password" minlength="8"required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+    </div>
+
+</body>
+</html>
