@@ -564,4 +564,3 @@ if __name__ == "__main__":
 
     print("[INFO] Application started successfully!")
     app.run(debug=True)
-]

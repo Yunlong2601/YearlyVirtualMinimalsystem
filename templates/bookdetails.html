@@ -70,16 +70,7 @@
 <body>
 
     <!-- Navbar -->
-    <div class="navbar">
-        <a href="{{ url_for('home') }}">Home</a>
-        <a href="{{ url_for('user_catalog') }}">Books</a>
-        <a href="#">Rewards</a>
-        <a href="#">Location</a>
-        <div style="float: right;">
-            <a href="{{ url_for('catalog_admin') }}">Admin View</a>
-            <a href="#">Cart</a>
-        </div>
-    </div>
+    {% include 'navbar.html' %}
 
     <!-- Book Details Section -->
     <div class="book-details-container">
