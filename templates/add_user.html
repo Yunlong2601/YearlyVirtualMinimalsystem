@@ -1,28 +1,9 @@
-{% extends "base.html" %}
-
-{% block title %}Add User{% endblock %}
-
-{% block content %}
-    <div class="form-container">
-        <h1>Add User</h1>
-        <form method="POST">
-            <label for="name">Name:</label><br>
-            <input type="text" id="name" name="name" required><br><br>
-            <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" required><br><br>
-            <label for="password">Password:</label><br>
-            <input type="password" id="password" name="password" required><br><br>
-            <label for="confirm_password">Confirm Password:</label><br>
-            <input type="password" id="confirm_password" name="confirm_password" required><br><br>
-            <label for="role">Role:</label><br>
-            <select id="role" name="role" required>
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-            </select><br><br>
-            <button type="submit">Add User</button>
-        </form>
-    </div>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User</title>
     <style>
         /* Centering the form-container */
         .form-container {
@@ -75,4 +56,42 @@
             transform: scale(0.95);
         }
     </style>
-{% endblock %}
+</head>
+<body>
+    {% include 'navbar.html' %}
+        </div>
+    </div>
+
+    <!-- Announcement Bar -->
+    <div class="banner">
+        FREE SHIPPING ON ALL BOOKS DEC 25–28.
+    </div>
+
+    
+    <div class="form-container">
+        <h1>Add User</h1>
+        <form method="POST">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" required><br><br>
+
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" required><br><br>
+
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password" required><br><br>
+
+            <label for="confirm_password">Confirm Password:</label><br>
+            <input type="password" id="confirm_password" name="confirm_password" required><br><br>
+
+            <label for="role">Role:</label><br>
+            <select id="role" name="role" required>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select><br><br>
+
+            <button type="submit">Add User</button>
+        </form>
+    </div>
+
+</body>
+</html>

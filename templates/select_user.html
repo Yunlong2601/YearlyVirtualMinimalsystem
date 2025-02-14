@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Select User{% endblock %}
+{% block content %}
+<style>
+.centered-page {
+max-width: 1200px;
+margin: 0 auto;
+padding: 20px;
+}
+h1 {
+font-weight: bold;
+margin-bottom: 20px;
+text-align: center;
+}
+.table-container {
+overflow-x: auto;
+margin-bottom: 30px;
+}
+table {
+width: 100%;
+border-collapse: collapse;
+margin-bottom: 20px;
+}
+.table th, .table td {
+padding: 12px;
+text-align: center;
+vertical-align: middle;
+}
+.table thead th {
+background-color: #343a40;
+color: white;
+}
+.table tbody tr:nth-child(odd) {
+background-color: #f8f9fa;
+}
+.table tbody tr:hover {
+background-color: #e9ecef;
+}
+.form-container {
+background-color: #f8f9fa;
+padding: 20px;
+border-radius: 8px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+margin-bottom: 30px;
+}
+.form-label {
+font-weight: bold;
+}
+.form-control {
+margin-bottom: 15px;
+}
+.btn {
+font-weight: bold;
+padding: 10px 20px;
+border-radius: 5px;
+}
+.btn-warning {
+background-color: #ffc107;
+border-color: #ffc107;
+}
+.btn-success {
+background-color: #28a745;
+border-color: #28a745;
+}
+.alert {
+margin-bottom: 20px;
+}
+.input-group {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 10px; /* Added spacing between dropdown and button */
+}
+.form-select {
+width: auto;
+}
+</style>
+<div class="centered-page">
+    <h1>Select a User</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="form-container">
+        <form action="{{ url_for('view_users') }}" method="GET" class="input-group">
+            <label for="user_id" class="form-label">Choose a user:</label>
+            <select name="user_id" id="user_id" class="form-select">
+                <option value="" disabled selected>Select a user...</option>
+                {% for user in users %}
+                    <option value="{{ user.user_id }}">{{ user.user_id }} ({{ user.points }} points)</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-success">Go to Redeem Rewards</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

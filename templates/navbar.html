@@ -1,6 +1,6 @@
 <!-- templates/navbar.html -->
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 
@@ -9,10 +9,9 @@
     <ul>
         <li><a href="dashboard">Home</a></li> <!-- Placeholder -->
         <li><a href="{{ url_for('user_catalog') }}">Catalog</a></li> <!-- Actual link -->
-        <li><a href="#">Rewards</a></li> <!-- Placeholder -->
+        <li><a href="rewards"">Rewards</a></li> <!-- Placeholder -->
         <li><a href="#">Profile</a></li> <!-- Placeholder -->
-        {% if not exclude_part %}
-      <li><a href="/special">Dashboard</a></li>
+      <li><a href="/admin_dashboard"">Admin Dashboard</a></li>
     {% endif %}
 
         {% if session.get('user_id') %} 

@@ -483,20 +483,10 @@ def login():
     return render_template('login.html')
 
 # Unified dashboard route
-@app.route('/dashboard', methods=['GET'])
-def dashboard():
-    user_id = session.get('user_id')
-    if not user_id:
-        return redirect(url_for('login'))
+@app.route('/admin_dashboard', methods=['GET'])
+def admin_dashboard():
+    return render_template('admin_dashboard.html')
 
-    user_data = get_user(user_id)
-    if not user_data:
-        return jsonify({'error': 'User not found'}), 404
-
-    # Redirect based on role
-    if user_data['Role'] == 'admin':
-        return render_template('admin_dashboard.html', user=user_data)
-    return render_template('user_dashboard.html', user=user_data)
 
 # Home route
 @app.route('/', methods=['GET'])
@@ -555,6 +545,11 @@ def update_my_account():
         flash('Failed to update account!', 'danger')
 
     return render_template('update_my_account.html', user=user_data)  # Show the update form
+
+
+
+
+
 
 
 
