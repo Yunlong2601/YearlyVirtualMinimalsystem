@@ -1,12 +1,62 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
 
-{% block title %}Admin Dashboard{% endblock %}
+        h1 {
+            color: #333;
+        }
 
-{% block content %}
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .action-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .action-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .action-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
     <h1>Welcome, Admin</h1>
     <p>Here you can manage users and view the database.</p>
 
+    <div class="button-container">
         <a href="/view_database" class="action-button">View Database</a>
-        <a href="/add_user" class="action-button">Add User</a>
+        <a href="/admin_catalogue" class="action-button">Admin Catalogue</a>
+        <a href="/admin_reward" class="action-button">Admin Reward</a>
+    </div>
 
-{% endblock %}
+</body>
+</html>

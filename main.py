@@ -427,8 +427,7 @@ def register():
         if password != confirm_password:
             return render_template('register.html', error="Passwords do not match!")
 
-        if email_exists(email):
-            return render_template('register.html', error="Email already exists! Please use a different email.")
+      
 
         add_user(name, email, password, role="user")
         return redirect(url_for('login'))
