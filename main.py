@@ -498,15 +498,12 @@ def login():
         with shelve.open(DB_FILE) as db:
             for user_id, user_data in db.items():
                 if user_data['Email'] == email:
-                    if check_password_hash(user_data['Password'], password):
+                    if password and check_password_hash(user_data['Password'], password):
                         session['user_id'] = user_id
-                        session['role'] = user_data[
-                            'Role']  # Store user role in session
-                        return redirect(
-                            url_for('dashboard'))  # Redirect to dashboard
+                        session['role'] = user_data['Role']
+                        return redirect(url_for('dashboard'))
 
-                    return render_template('login.html',
-                                           error="Invalid password!")
+                    return render_template('login.html', error="Invalid password!")
 
         return render_template('login.html', error="User not found!")
 
