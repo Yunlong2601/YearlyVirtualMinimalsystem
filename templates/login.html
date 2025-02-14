@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="login-container">
+        <h2>Login</h2>
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" required><br><br>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label><br>
+                <input type="password" name="password" minlength="8" maxlength="20" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+
+        <p>
+
+        </p>
+    </div>
+
+    <!-- Optional Styling -->
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .btn {
+            cursor: pointer;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+        }
+        .btn-primary {
+            background-color: #007BFF;
+            color: #fff;
+        }
+    </style>
+{% endblock %}

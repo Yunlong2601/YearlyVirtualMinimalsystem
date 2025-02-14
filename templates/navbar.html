@@ -1,0 +1,25 @@
+<!-- templates/navbar.html -->
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+
+
+<nav class="navbar">
+    <ul>
+        <li><a href="#">Home</a></li> <!-- Placeholder -->
+        <li><a href="{{ url_for('user_catalog') }}">Catalog</a></li> <!-- Actual link -->
+        <li><a href="#">Rewards</a></li> <!-- Placeholder -->
+        <li><a href="#">Profile</a></li> <!-- Placeholder -->
+        {% if not exclude_part %}
+      <li><a href="/special">Dashboard</a></li>
+    {% endif %}
+
+        {% if session.get('user_id') %} 
+        {% endif %}
+        <div style="float: right;">
+            <a href="#">Cart</a> <!-- Placeholder -->
+        </div>
+    </ul>
+</nav>
+

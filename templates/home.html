@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <h1>Welcome</h1>
+    <p>Select an action:</p>
+    <div>
+        <button class="action-button" onclick="location.href='/register'">Register</button>
+        <button class="action-button" onclick="location.href='/login'">Login</button>
+    </div>
+</div>
+
+<style>
+    /* Full page height and centering using Flexbox */
+    .home-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; /* Full viewport height */
+        text-align: center;
+    }
+
+    /* Styling buttons */
+    .action-button {
+        margin: 10px;
+        padding: 10px 20px;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .action-button:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+    }
+
+    .action-button:active {
+        transform: scale(0.95);
+    }
+</style>
+{% endblock %}

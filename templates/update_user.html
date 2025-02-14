@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Update User{% endblock %}
+
+{% block content %}
+    <h1 class="form-title">Update User</h1>
+
+    <form method="POST" class="styled-form">
+        <!-- Name Input -->
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ user['Name'] }}" required>
+
+        <!-- Email Input -->
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ user['Email'] }}" required>
+
+        <!-- Role Selector -->
+        <label for="role">Role:</label>
+        <select id="role" name="role" required>
+            <option value="user" {% if user['Role'] == 'user' %}selected{% endif %}>User</option>
+            <option value="admin" {% if user['Role'] == 'admin' %}selected{% endif %}>Admin</option>
+        </select>
+
+        <!-- Points Input -->
+        <label for="points">Points:</label>
+        <input type="number" id="points" name="points" value="{{ user['Points'] }}" required>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-primary">Update</button>
+    </form>
+
+    <!-- Back Link -->
+    <a href="/view_database" class="back-link">Back to Database</a>
+{% endblock %}

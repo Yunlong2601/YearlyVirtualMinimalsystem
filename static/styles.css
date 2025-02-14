@@ -1,0 +1,83 @@
+/* General Body Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #ffffff; /* White background */
+    color: #000000; /* Black text */
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+/* Navigation Bar */
+nav {
+    background-color: #ffffff; /* White background */
+    border-bottom: 1px solid #000; /* Black border */
+    padding: 10px 20px; /* Adjust spacing */
+    display: flex; /* Flex layout */
+    align-items: center; /* Center items vertically */
+    justify-content: space-between; /* Arrange left and right sections */
+}
+
+/* Navigation Links */
+nav ul {
+    list-style: none; /* Remove bullets */
+    margin: 0; /* No margin */
+    padding: 0; /* No padding */
+    display: flex;
+    gap: 20px; /* Spacing between links */
+}
+
+nav ul li {
+    margin: 0; /* No additional margin */
+}
+
+nav ul li a {
+    text-decoration: none; /* No underline */
+    color: #000; /* Black text */
+    font-size: 14px; /* Standard font */
+    font-weight: bold; /* Emphasize with bold weight */
+    padding: 8px 14px; /* Add space around */
+    transition: all 0.3s ease; /* Smooth hover effect */
+}
+
+nav ul li a:hover {
+    color: #000000!important; /* White text */
+    background-color: #ffffff!important; /* Black background for hover */
+    border-radius: 4px; /* Rounded corners */
+}
+
+/* Banner */
+.banner {
+    background-color: #000; /* Black background */
+    color: #fff; /* White text */
+    text-align: center; /* Center-align text */
+    font-size: 16px; /* Slightly larger font size for emphasis */
+    padding: 10px 0; /* Add vertical padding */
+    font-weight: bold; /* Bold text for emphasis */
+    text-transform: uppercase; /* Uppercase for emphasis */
+    letter-spacing: 1px; /* Add spacing between letters */
+    margin: 0 auto; /* Center within parent container */
+    width: 100%; /* Ensure it spans the width of the page */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+/* Utility Classes */
+.text-center {
+    text-align: center;
+}
+
+.text-bold {
+    font-weight: bold;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.banner{
+    text-align: center;
+}

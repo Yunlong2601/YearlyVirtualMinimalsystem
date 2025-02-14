@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    <h1>My Profile</h1>
+    <div>
+        <p><strong>Name:</strong> {{ user['Name'] }}</p>
+        <p><strong>Email:</strong> {{ user['Email'] }}</p>
+        <p><strong>Role:</strong> {{ user['Role'] }}</p>
+        <p><strong>Points:</strong> {{ user['Points'] }}</p>
+    </div>
+
+    <h2>Actions</h2>
+    <ul class="action-buttons">
+        <li><a href="/update_my_account" class="action-button">Update My Account</a></li>
+        <li><a href="/dashboard" class="action-button">Back to Dashboard</a></li>
+        <li><a href="/logout" class="action-button">Logout</a></li>
+    </ul>
+{% endblock %}

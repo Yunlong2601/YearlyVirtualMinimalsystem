@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+    <h1>Welcome, Admin</h1>
+    <p>Here you can manage users and view the database.</p>
+
+        <a href="/view_database" class="action-button">View Database</a>
+        <a href="/add_user" class="action-button">Add User</a>
+
+{% endblock %}
