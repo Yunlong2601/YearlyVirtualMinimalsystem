@@ -557,8 +557,6 @@ def update_my_account():
     return render_template('update_my_account.html', user=user_data)  # Show the update form
 
 
-app.run(debug=True, use_reloader=False)
-
 
 if __name__ == "__main__":
     if not os.path.exists(STATIC_IMAGES_PATH):
@@ -566,5 +564,4 @@ if __name__ == "__main__":
 
     print("[INFO] Application started successfully!")
     app.run(debug=True)
-
-app.run(host='0.0.0.0', port=81)
+]
