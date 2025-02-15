@@ -585,6 +585,30 @@ def profile():
 
 @app.route('/update_my_account', methods=['GET', 'POST'])
 def update_my_account():
+    user_id = session.get('user_id')  # Get logged-in user's ID
+    if not user_id:
+        return redirect(url_for('login'))  # Redirect to "login" if not logged in
+
+    user_data = get_user(user_id)  # Fetch user data from the database
+    if not user_data:
+        return jsonify({'error': 'User not found'}), 404
+
+    if request.method == 'POST':  # Handle form submission
+        data = request.form
+        updates = {
+            'Name': data.get('name'),
+            'Email': data.get('email'),
+            'Password': generate_password_hash(data.get('password')) if data.get('password') else None
+        }
+        updates = {key: value for key, value in updates.items() if value}  # Filter empty values
+
+        if update_user(user_id, updates):
+            flash('Account updated successfully!', 'success')
+            return redirect(url_for('profile'))  # Redirect to profile page
+
+        flash('Failed to update account!', 'danger')
+
+    return render_template('update_my_account.html', user=user_data)  # Show the update form
 
 
 @app.route('/update_image', methods=['POST'])
