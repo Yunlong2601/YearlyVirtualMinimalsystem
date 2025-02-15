@@ -2,6 +2,15 @@
 {% extends "base.html" %}
 {% block title %}Rewards{% endblock %}
 {% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 <style>
     .centered-page {
         max-width: 1200px;
@@ -95,15 +104,6 @@
 
 <div class="centered-page">
     <h1>Rewards</h1>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}" style="margin-bottom: 10px;">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
 
     <!-- User Information -->
     {% if user %}
