@@ -819,7 +819,9 @@ def redeem_reward():
             # Update points and save back to database
             with shelve.open(DB_FILE, writeback=True) as users_db:
                 users_db[user_id]['Points'] -= reward['points']
+                # Update session with new user data
                 session['points'] = users_db[user_id]['Points']
+                session['user'] = users_db[user_id]  # Update entire user data in session
 
             reward['quantity'] -= 1
 
