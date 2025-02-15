@@ -585,6 +585,83 @@ def profile():
 
 @app.route('/update_my_account', methods=['GET', 'POST'])
 def update_my_account():
+
+
+@app.route('/update_image', methods=['POST'])
+def update_image():
+    reward_name = request.form.get('reward_name')
+    new_image_url = request.form.get('new_image_url')
+    
+    with shelve.open(REWARDS_DB, writeback=True) as rewards:
+        if reward_name in rewards:
+            rewards[reward_name]['image_url'] = new_image_url
+            flash('Image updated successfully!', 'success')
+        else:
+            flash('Reward not found!', 'danger')
+    
+    return redirect(url_for('view_rewards'))
+
+@app.route('/update_quantity', methods=['POST'])
+def update_quantity():
+    reward_name = request.form.get('reward_name')
+    new_quantity = int(request.form.get('new_quantity'))
+    
+    with shelve.open(REWARDS_DB, writeback=True) as rewards:
+        if reward_name in rewards:
+            rewards[reward_name]['quantity'] = new_quantity
+            flash('Quantity updated successfully!', 'success')
+        else:
+            flash('Reward not found!', 'danger')
+    
+    return redirect(url_for('view_rewards'))
+
+@app.route('/update_points', methods=['POST'])
+def update_points():
+    reward_name = request.form.get('reward_name')
+    new_points = int(request.form.get('new_points'))
+    
+    with shelve.open(REWARDS_DB, writeback=True) as rewards:
+        if reward_name in rewards:
+            rewards[reward_name]['points'] = new_points
+            flash('Points updated successfully!', 'success')
+        else:
+            flash('Reward not found!', 'danger')
+    
+    return redirect(url_for('view_rewards'))
+
+@app.route('/remove_reward', methods=['POST'])
+def remove_reward():
+    reward_name = request.form.get('reward_name')
+    
+    with shelve.open(REWARDS_DB, writeback=True) as rewards:
+        if reward_name in rewards:
+            del rewards[reward_name]
+            flash('Reward removed successfully!', 'success')
+        else:
+            flash('Reward not found!', 'danger')
+    
+    return redirect(url_for('view_rewards'))
+
+@app.route('/add_reward', methods=['POST'])
+def add_reward():
+    reward_name = request.form.get('reward_name')
+    points_required = int(request.form.get('points_required'))
+    quantity = int(request.form.get('quantity'))
+    image_url = request.form.get('image_url', '')
+    
+    with shelve.open(REWARDS_DB, writeback=True) as rewards:
+        if reward_name in rewards:
+            flash('Reward already exists!', 'danger')
+        else:
+            rewards[reward_name] = {
+                'points': points_required,
+                'quantity': quantity,
+                'image_url': image_url
+            }
+            flash('Reward added successfully!', 'success')
+    
+    return redirect(url_for('view_rewards'))
+
     user_id = session.get('user_id')  # Get logged-in user's ID
     if not user_id:
         return redirect(
