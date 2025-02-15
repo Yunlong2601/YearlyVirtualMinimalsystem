@@ -824,6 +824,7 @@ def redeem_reward():
                 flash(f'{user_email} successfully redeemed {reward_name}.', 'success')
 
             reward['quantity'] -= 1
+            flash(f'Successfully redeemed {reward_name} for {reward["points"]} points!', 'success')
             return redirect(url_for('view_rewards'))
 
     except Exception as e:
