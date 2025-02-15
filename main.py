@@ -40,13 +40,14 @@ def initialize_databases():
             db['sales'] = {}  # Key: ISBN, Value: List of sales transactions
             
     # Initialize rewards database
-    with shelve.open(REWARDS_DB, writeback=True) as db:
+    with shelve.open(REWARDS_DB, flag='c', writeback=True) as db:
         if len(db) == 0:
             db['Sample Reward'] = {
                 "points": 100,
                 "quantity": 10,
                 "image_url": ""
             }
+            db.sync()
 
 
 @app.route('/simulate_purchase/<isbn>', methods=['POST'])
