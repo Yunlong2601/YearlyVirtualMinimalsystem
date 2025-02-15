@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Rewards{% endblock %}
 {% block content %}
+
 <style>
 .centered-page {
     max-width: 1200px;
@@ -12,61 +13,36 @@ h2 {
     margin-bottom: 20px;
     text-align: center;
 }
-/* Rewards Table Styling */
-.table-container {
-    overflow-x: auto;
-    margin-top: 20px;
+/* Product Grid Styling */
+.product-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
 }
-table {
+.product-item {
+    width: 200px;
+    background: #f8f8f8;
+    padding: 15px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.product-item img {
     width: 100%;
-    border-collapse: collapse;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
 }
-th, td {
-    padding: 10px;
-    text-align: left;
-    border: 1px solid #ddd;
+.product-item p {
+    margin: 5px 0;
 }
-th {
-    background-color: #f4f4f4;
-}
-img {
-    max-width: 50px;
-    height: auto;
-}
-/* Form Styling */
-.form-container {
-    margin-top: 20px;
-}
-.mb-3 {
-    margin-bottom: 15px;
-}
-.form-control {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-}
-.btn {
-    padding: 10px;
+.cart-icon {
+    font-size: 20px;
     cursor: pointer;
-}
-.btn-small {
-    padding: 5px 10px;
-}
-.btn-info {
-    background-color: #17a2b8;
-    color: white;
-}
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-}
-.btn-danger {
-    background-color: #dc3545;
-    color: white;
-}
-.btn-warning {
-    background-color: #ffc107;
-    color: black;
+    display: block;
+    margin-top: 10px;
 }
 /* User Info Section Styling */
 .user-info {
@@ -88,154 +64,84 @@ img {
     color: #666;
 }
 </style>
-<div class="centered-page">
-    <!-- Display User Information -->
-    {% if not is_admin and user %}
+
+{% if not is_admin and user %}
     <div class="user-info">
         <h3>Welcome, {{ user.Name }}!</h3>
-        <p>You have <strong>{{ user.Points }}</strong> points.</p>
+        <p>You have {{ user.Points }} points.</p>
     </div>
-    {% endif %}
+{% endif %}
 
-    <!-- Display Available Rewards -->
-    <h2>Available Rewards</h2>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Reward Name</th>
-                    <th>Points Required</th>
-                    <th>Quantity</th>
-                    <th>Image</th>
-                    {% if is_admin %}
-                    <th>Actions</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for reward in rewards %}
-                <tr>
-                    <td>{{ reward.name }}</td>
-                    <td>{{ reward.points }}</td>
-                    <td>{{ reward.quantity }}</td>
-                    <td>
-                        <!-- Display Reward Image -->
-                        {% if reward.image_url %}
-                        <img src="{{ reward.image_url }}" alt="{{ reward.name }}">
-                        {% else %}
-                        No Image
-                        {% endif %}
-                    </td>
-                    {% if is_admin %}
-                    <td>
-                        <div class="input-group">
-                            <!-- Form to update quantity -->
-                            <form action="{{ url_for('update_quantity') }}" method="POST" class="d-inline">
-                                <input type="hidden" name="reward_name" value="{{ reward.name }}">
-                                <input type="number" class="form-control" name="new_quantity" value="{{ reward.quantity }}" min="0" required>
-                                <button type="submit" class="btn btn-info btn-small">Update Qty</button>
-                            </form>
-                            <!-- Form to update points -->
-                            <form action="{{ url_for('update_points') }}" method="POST" class="d-inline">
-                                <input type="hidden" name="reward_name" value="{{ reward.name }}">
-                                <input type="number" class="form-control" name="new_points" value="{{ reward.points }}" min="0" required>
-                                <button type="submit" class="btn btn-primary btn-small">Update Pts</button>
-                            </form>
-                            <!-- Form to remove reward -->
-                            <form action="{{ url_for('remove_reward') }}" method="POST" class="d-inline">
-                                <input type="hidden" name="reward_name" value="{{ reward.name }}">
-                                <button type="submit" class="btn btn-danger btn-small">Remove</button>
-                            </form>
-                        </div>
-                    </td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <!-- Redeem Rewards Section -->
-    <div class="form-container section-spacing">
-        <h2>Redeem Rewards</h2>
-        <form action="{{ url_for('redeem_reward') }}" method="POST">
-            <div class="mb-3">
-                <label for="reward_name" class="form-label">Select Reward</label>
-                <select class="form-control" id="reward_name" name="reward_name" required aria-label="Select Reward">
-                    <option value="" disabled selected>Choose a reward...</option>
-                    {% for reward in rewards %}
-                    <option value="{{ reward.name }}">
-                        {{ reward.name }} ({{ reward.points }} points)
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required aria-label="Enter Email">
-            </div>
-            <button type="submit" class="btn btn-warning w-100">Redeem</button>
-        </form>
-    </div>
-    <!-- Admin-Specific Features -->
-    {% if is_admin %}
-    <!-- Update Reward Image Form -->
-    <div class="form-container section-spacing">
-        <h2>Update Reward Image</h2>
-        <form action="{{ url_for('update_image') }}" method="POST">
-            <div class="mb-3">
-                <label for="reward_name" class="form-label">Reward Name</label>
-                <select class="form-control" id="reward_name" name="reward_name" required aria-label="Select Reward">
-                    <option value="" disabled selected>Choose a reward...</option>
-                    {% for reward in rewards %}
-                    <option value="{{ reward.name }}">{{ reward.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="new_image_url" class="form-label">New Image URL</label>
-                <input type="url" class="form-control" id="new_image_url" name="new_image_url" placeholder="Enter new image URL" required aria-label="Enter New Image URL">
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Update Image</button>
-        </form>
-    </div>
-    <!-- Add a New Reward Form -->
-    <div class="form-container section-spacing">
-        <h2>Add a New Reward</h2>
-        <form action="{{ url_for('add_reward') }}" method="POST">
-            <div class="mb-3">
-                <label for="reward_name" class="form-label">Reward Name</label>
-                <input type="text" class="form-control" id="reward_name" name="reward_name" required aria-label="Enter Reward Name">
-            </div>
-            <div class="mb-3">
-                <label for="points_required" class="form-label">Points Required</label>
-                <input type="number" class="form-control" id="points_required" name="points_required" required aria-label="Enter Points Required">
-            </div>
-            <div class="mb-3">
-                <label for="quantity" class="form-label">Quantity</label>
-                <input type="number" class="form-control" id="quantity" name="quantity" required aria-label="Enter Quantity">
-            </div>
-            <div class="mb-3">
-                <label for="image_url" class="form-label">Image URL (Optional)</label>
-                <input type="url" class="form-control" id="image_url" name="image_url" placeholder="Enter image URL" aria-label="Enter Image URL">
-            </div>
-            <button type="submit" class="btn btn-success w-100">Add Reward</button>
-        </form>
-    </div>
-    <!-- Add Points to a User Form -->
-    <div class="form-container section-spacing">
-        <h2>Add Points to a User</h2>
-        <form action="{{ url_for('add_points') }}" method="POST">
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required aria-label="Enter Email">
-            </div>
-            <div class="mb-3">
-                <label for="points" class="form-label">Points to Add</label>
-                <input type="number" class="form-control" id="points" name="points" required aria-label="Enter Points to Add">
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Add Points</button>
-        </form>
-    </div>
-    {% endif %}
+<h2>Available Rewards</h2>
+<div class="product-grid">
+    {% for reward in rewards %}
+        <div class="product-item">
+            {% if reward.image_url %}
+                <img src="{{ reward.image_url }}" alt="{{ reward.name }}">
+            {% else %}
+                <div style="width:100%; height:150px; background:#ddd; display:flex; align-items:center; justify-content:center;">
+                    No Image
+                </div>
+            {% endif %}
+            <p><strong>{{ reward.name }}</strong></p>
+            <p>{{ reward.points }} Points</p>
+            <p>Stock: {{ reward.quantity }}</p>
+            <span class="cart-icon">🛒</span>
+        </div>
+    {% endfor %}
 </div>
+
+<!-- Admin Actions -->
+{% if is_admin %}
+    <h2>Update Reward Image</h2>
+    <form action="/update-image" method="post">
+        <label for="reward-name-update">Reward Name</label>
+        <select id="reward-name-update" name="reward_name">
+            <option value="">Choose a reward...</option>
+            {% for reward in rewards %}
+                <option value="{{ reward.name }}">{{ reward.name }}</option>
+            {% endfor %}
+        </select>
+        <label for="new-image-url">New Image URL</label>
+        <input type="url" id="new-image-url" name="image_url">
+        <button type="submit">Update Image</button>
+    </form>
+
+    <h2>Add a New Reward</h2>
+    <form action="/add-reward" method="post">
+        <label for="new-reward-name">Reward Name</label>
+        <input type="text" id="new-reward-name" name="name" required>
+        <label for="points-required">Points Required</label>
+        <input type="number" id="points-required" name="points" required>
+        <label for="quantity">Quantity</label>
+        <input type="number" id="quantity" name="quantity" required>
+        <label for="image-url">Image URL (Optional)</label>
+        <input type="url" id="image-url" name="image_url">
+        <button type="submit">Add Reward</button>
+    </form>
+
+    <h2>Redeem Rewards</h2>
+    <form action="/redeem" method="post">
+        <label for="reward-select">Select Reward</label>
+        <select id="reward-select" name="reward">
+            <option value="">Choose a reward...</option>
+            {% for reward in rewards %}
+                <option value="{{ reward.name }}">{{ reward.name }} ({{ reward.points }} points)</option>
+            {% endfor %}
+        </select>
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+        <button type="submit">Redeem</button>
+    </form>
+
+    <h2>Add Points to a User</h2>
+    <form action="/add-points" method="post">
+        <label for="user-email">Email</label>
+        <input type="email" id="user-email" name="email" required>
+        <label for="points-to-add">Points to Add</label>
+        <input type="number" id="points-to-add" name="points" required>
+        <button type="submit">Add Points</button>
+    </form>
+{% endif %}
+
 {% endblock %}

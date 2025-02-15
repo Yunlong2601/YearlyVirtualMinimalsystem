@@ -9,7 +9,7 @@
         <li><a href="{{ url_for('user_catalog') }}">Catalog</a></li>
         <li><a href="/rewards">Rewards</a></li>
         <li><a href="{{ url_for('profile') }}">Profile</a></li>
-        <li><a href="/shoppingcart">Shopping Cart</a></li>
+        <li><a href="{{ url_for('shopping_cart', user_id=session.get('user_id')) }}">Shopping Cart</a></li>
 
         {% if session.get('role') == "admin" %}
             <li><a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
@@ -28,4 +28,3 @@
         </div>
     </ul>
 </nav>
-

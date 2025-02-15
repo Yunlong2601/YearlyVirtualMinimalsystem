@@ -1,105 +1,107 @@
-
-{% extends "base.html" %}
-{% block title %}Shopping Cart{% endblock %}
-{% block content %}
-{% if session.get('user_id') %}
-
-<style>
-.centered-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-h2 {
-    font-weight: bold;
-    margin-bottom: 20px;
-    text-align: center;
-}
-.table-container {
-    overflow-x: auto;
-    margin-top: 20px;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-th, td {
-    padding: 10px;
-    text-align: left;
-    border: 1px solid #ddd;
-}
-th {
-    background-color: #f4f4f4;
-}
-img {
-    max-width: 50px;
-    height: auto;
-}
-.btn {
-    padding: 10px;
-    cursor: pointer;
-}
-.btn-danger {
-    background-color: #dc3545;
-    color: white;
-}
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-}
-</style>
-    <h2>Your Shopping Cart</h2>
-    <p>User ID: {user.id }}</p>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Image</th>
-                    <th>Total</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in cart_items %}
-                <tr>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.price }}</td>
-                    <td>
-                        <form action="{{ url_for('update_cart') }}" method="POST">
-                            <input type="hidden" name="item_name" value="{{ item.name }}">
-                            <input type="number" class="form-control" name="new_quantity" value="{{ item.quantity }}" min="1" required>
-                            <button type="submit" class="btn btn-primary btn-small">Update</button>
-                        </form>
-                    </td>
-                    <td>
-                        {% if item.image_url %}
-                        <img src="{{ item.image_url }}" alt="{{ item.name }}">
-                        {% else %}
-                        No Image
-                        {% endif %}
-                    </td>
-                    <td>{{ item.total }}</td>
-                    <td>
-                        <form action="{{ url_for('remove_from_cart') }}" method="POST">
-                            <input type="hidden" name="item_name" value="{{ item.name }}">
-                            <button type="submit" class="btn btn-danger btn-small">Remove</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    {% include "navbar.html" %}
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8">
+                <h2>Your Shopping Cart</h2>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Item</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Subtotal</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in books.values() %}
+                        <tr>
+                            <td>{{ book['title'] }}</td>
+                            <td class="price">{{ book['price'] }}</td>
+                            <td>
+                                <input type="number" class="form-control quantity" 
+                                       value="{{ book['stock'] }}" 
+                                       min="1" required 
+                                       data-price="{{ book['price'] }}"
+                                       oninput="updateSubtotal(this)">
+                            </td>
+                            <td class="subtotal">{{ book['price'] * book['stock'] }}</td>
+                            <td>
+                                <form action="{{ url_for('remove_from_cart', isbn=book['isbn']) }}" method="POST">
+                                    <input type="hidden" name="isbn" value="{{ book['isbn'] }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Order Summary</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Subtotal
+                                <span id="cart-total" class="badge badge-primary badge-pill">{{ cart_total }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Shipping
+                                <span class="badge badge-primary badge-pill">Free</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Total
+                                <span id="cart-total-final" class="badge badge-primary badge-pill">{{ cart_total }}</span>
+                            </li>
+                        </ul>
+                        <button class="btn btn-success btn-block mt-3">Proceed to Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="text-center" style="margin-top: 20px;">
-        <h3>Total: {{ cart_total }}</h3>
-        <form action="{{ url_for('checkout') }}" method="POST">
-            <button type="submit" class="btn btn-success">Proceed to Checkout</button>
-        </form>
-    </div>
-{% else %}
-    <h2>Please login to view your shopping cart.</h2>
-{% endif %}
-{% endblock %}
+
+    <script>
+        function updateSubtotal(input) {
+            let quantity = input.value;
+            let price = input.dataset.price;
+            let subtotalElement = input.closest('tr').querySelector('.subtotal');
+
+            // Calculate new subtotal
+            let newSubtotal = (quantity * price).toFixed(2);
+            subtotalElement.textContent = newSubtotal;
+
+            // Update total
+            updateTotal();
+        }
+
+        function updateTotal() {
+            let total = 0;
+            document.querySelectorAll('.subtotal').forEach(subtotal => {
+                total += parseFloat(subtotal.textContent);
+            });
+
+            // Update total in UI
+            document.getElementById('cart-total').textContent = total.toFixed(2);
+            document.getElementById('cart-total-final').textContent = total.toFixed(2);
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

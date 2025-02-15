@@ -12,6 +12,7 @@ i = 5
 
 DB_FILE = 'admin_database.db'
 REWARDS_DB = 'rewards.db'
+DATABASE_CARTS = 'carts.db'
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -851,17 +852,92 @@ def add_points():
 
 
 
-
-@app.route('/shoppingcart')
-def shopping_cart():
+@app.route('/shoppingcart/<user_id>')
+def shopping_cart(user_id):
     try:
-        return render_template('shoppingcart.html')
+        with shelve.open(DATABASE) as db:
+            books = db.get('books', {})
+        with shelve.open(REWARDS_DB) as rewards:
+            reward_list = [
+                {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")} 
+                for k, v in rewards.items()
+            ]
+        return render_template('shoppingcart.html', user_id=user_id, books=books, rewards=reward_list)
     except Exception as e:
-        return f"Error: {e}", 500  # This will print the error in the browser
+        return f"Error: {e}", 500
+
+
+@app.route('/update_cart/<isbn>', methods=['POST'])
+def update_cart(isbn):
+    """Update the quantity of a book in the user's cart."""
+    if 'cart' not in session:
+        session['cart'] = {}
+
+    with shelve.open(DATABASE) as db:
+        books = db.get('books', {})
+        if isbn in books:
+            cart = session['cart']
+            new_quantity = int(request.form.get('new_quantity'))  # Get new quantity from form
+            if new_quantity > 0:
+                cart[isbn] = cart.get(
+                    isbn, {
+                        'title': books[isbn]['title'],
+                        'price': books[isbn]['price'],
+                        'quantity': 0
+                    })
+                cart[isbn]['quantity'] = new_quantity  # Set the new quantity
+                session.modified = True
+                flash(f"Quantity of '{books[isbn]['title']}' updated in your cart.", "success")
+            else:
+                flash(f"Invalid quantity for '{books[isbn]['title']}'.", "danger")
+        else:
+            flash("Book not found.", "danger")
+
+    return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
+
+
+@app.route('/remove_from_cart/<isbn>', methods=['POST'])
+def remove_from_cart(isbn):
+    """Remove a book from the user's cart."""
+    if 'cart' in session:
+        cart = session['cart']
+        if isbn in cart:
+            cart.pop(isbn)
+            session.modified = True
+            flash(f"Book removed from your cart.", "success")
+        else:
+            flash("Book not found in your cart.", "danger")
+
+    return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
 
 
 
+@app.route('/update_reward_quantity', methods=['POST'])
+def update_reward_quantity():
+    reward_name = request.form.get('reward_name')
+    new_quantity = int(request.form.get('new_quantity'))
 
+    with shelve.open(REWARDS_DB, writeback=True) as rewards:
+        if reward_name in rewards:
+            rewards[reward_name]['quantity'] = new_quantity
+            flash('Quantity updated successfully!', 'success')
+        else:
+            flash('Reward not found!', 'danger')
+
+    return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
+
+@app.route('/remove_reward_from_cart', methods=['POST'])
+def remove_reward_from_cart():
+    reward_name = request.form.get('reward_name')
+
+    with shelve.open(REWARDS_DB, writeback=True) as rewards:
+        if reward_name in rewards:
+            rewards[reward_name]['quantity'] += 1  # Increment quantity back
+            flash('Reward removed from cart.', 'success')
+        else:
+            flash('Reward not found.', 'danger')
+
+    return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
 
 
 
