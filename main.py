@@ -756,18 +756,29 @@ def view_rewards():
     is_admin = session.get('role') == 'admin'
     print(f"Accessing /rewards. is_admin = {is_admin}")
 
-    with shelve.open(REWARDS_DB, flag='c') as rewards:
-        reward_list = [
-            {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")} 
-            for k, v in rewards.items()
-        ]
+    try:
+        with shelve.open(REWARDS_DB, flag='c') as rewards:
+            reward_list = [
+                {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")} 
+                for k, v in rewards.items()
+            ]
 
-    if is_admin:
-        print("Rendering admin rewards page.")
-        return render_template('rewards.html', rewards=reward_list, is_admin=True)
-    else:
-        print("Rendering user rewards page.")
-        return render_template('rewards.html', rewards=reward_list, is_admin=False)
+        # Get user info if not admin
+        user = None
+        if not is_admin and session.get('user_id'):
+            with shelve.open(DB_FILE) as db:
+                user = db.get(session.get('user_id'))
+
+        if is_admin:
+            print("Rendering admin rewards page.")
+            return render_template('rewards.html', rewards=reward_list, is_admin=True)
+        else:
+            print("Rendering user rewards page.")
+            return render_template('rewards.html', rewards=reward_list, is_admin=False, user=user)
+    except Exception as e:
+        print(f"Error in view_rewards: {e}")
+        flash("An error occurred while loading rewards", "error")
+        return redirect(url_for('home'))
 
 @app.route('/redeem_reward', methods=['POST'])
 def redeem_reward():
