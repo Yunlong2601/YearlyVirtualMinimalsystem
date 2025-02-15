@@ -8,6 +8,9 @@
             <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
                 {{ message }}
             </div>
+            <script>
+                alert("{{ message }}");
+            </script>
         {% endfor %}
     {% endif %}
 {% endwith %}
