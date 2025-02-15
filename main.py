@@ -910,6 +910,12 @@ def update_cart():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+# Function to initialize the cart database
+def initialize_cart_database():
+    with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
+        if 'books' not in cart_db:
+            cart_db['books'] = {}
+
 
 @app.route('/remove_from_cart/<isbn>', methods=['POST'])
 def remove_from_cart(isbn):

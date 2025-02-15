@@ -1,147 +1,140 @@
-{% extends "base.html" %}
-{% block title %}Rewards{% endblock %}
-{% block content %}
-<div id="flash-messages">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
-                    {{ message }}
-                </div>
-            {% endfor %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewards</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .catalogue-container {
+            padding: 20px;
+        }
+
+        .main-content {
+            display: flex;
+        }
+
+        .filters {
+            width: 20%;
+            padding: 10px;
+            border-right: 1px solid #ddd;
+        }
+
+        .products-container {
+            width: 80%;
+            padding-left: 20px;
+        }
+
+        .products {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .product-title {
+            min-height: 40px;
+        }
+
+        .points-info {
+            font-size: 0.9rem;
+            color: #007bff;
+            margin-top: 5px;
+        }
+
+        .user-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="banner">
+        REDEEM YOUR POINTS FOR EXCLUSIVE REWARDS
+    </div>
+
+    <div class="catalogue-container">
+        {% if not is_admin and user %}
+            <div class="user-info">
+                <h3>Welcome, {{ user.Name }}!</h3>
+                <p>You have {{ user.Points }} points available to redeem.</p>
+            </div>
         {% endif %}
-    {% endwith %}
-</div>
-<style>
-    .centered-page {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    h1 {
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    .user-info {
-        background: #f0f0f0;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 8px;
-        text-align: center;
-    }
-    .rewards-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-        margin-top: 20px;
-    }
-    .reward-card {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
-        text-align: center;
-        width: 200px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .reward-image img {
-        width: 100%;
-        height: 150px;
-        object-fit: cover;
-        border-radius: 5px;
-    }
-    .reward-info {
-        margin-top: 10px;
-    }
-    .reward-name {
-        font-weight: bold;
-        text-transform: capitalize;
-    }
-    .reward-points {
-        color: #555;
-    }
-    .reward-quantity {
-        font-size: 14px;
-        color: #333;
-        margin-top: 5px;
-    }
-    .btn-redeem {
-        display: block;
-        margin: 10px auto 0;
-        border-radius: 5px;
-        padding: 10px;
-        font-size: 16px;
-        background-color: #ffc107;
-        color: #000;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-    .btn-redeem:hover {
-        background-color: #e0a800;
-    }
-    .btn-redeem:disabled {
-        background-color: #ccc;
-        cursor: not-allowed;
-    }
-    .alert {
-        padding: 15px;
-        margin-bottom: 20px;
-        border: 1px solid transparent;
-        border-radius: 4px;
-    }
-    .alert-success {
-        color: #155724;
-        background-color: #d4edda;
-        border-color: #c3e6cb;
-    }
-    .alert-danger {
-        color: #721c24;
-        background-color: #f8d7da;
-        border-color: #f5c6cb;
-    }
-</style>
-<div class="centered-page">
-    <h1>Rewards</h1>
 
-    <!-- User Information -->
-    {% if user %}
-    <div class="user-info">
-        <h3>Welcome, {{ user.Name }}!</h3>
-        <p>Available Points: {{ user.Points }}</p>
-    </div>
-    {% endif %}
+        <h2 class="description">Available Rewards</h2>
 
-    <!-- Rewards Grid -->
-    <div class="rewards-container">
-        {% for reward in rewards %}
-        <div class="reward-card">
-            <div class="reward-image">
-                {% if reward.image_url %}
-                <img src="{{ reward.image_url }}" alt="{{ reward.name }}">
-                {% else %}
-                <div style="width: 100%; height: 150px; background-color: #ddd; display: flex; align-items: center; justify-content: center;">
-                    No Image
+        <div class="main-content">
+            <div class="filters">
+                <h5>Sort By</h5>
+                <div class="filter-section">
+                    <input type="radio" id="pointsLow" name="sortPoints">
+                    <label for="pointsLow">Points: Low to High</label>
                 </div>
-                {% endif %}
+                <div class="filter-section">
+                    <input type="radio" id="pointsHigh" name="sortPoints">
+                    <label for="pointsHigh">Points: High to Low</label>
+                </div>
             </div>
-            <div class="reward-info">
-                <p class="reward-name">{{ reward.name }}</p>
-                <p class="reward-points">{{ reward.points }} Points</p>
-                <p class="reward-quantity">Stock Left: {{ reward.quantity }}</p>
+
+            <div class="products-container">
+                <div class="products">
+                    {% for reward in rewards %}
+                        <div class="product-card">
+                            {% if reward.image_url %}
+                                <img src="{{ reward.image_url }}" alt="{{ reward.name }}">
+                            {% else %}
+                                <div style="width:100%; height:150px; background:#ddd; display:flex; align-items:center; justify-content:center;">
+                                    No Image
+                                </div>
+                            {% endif %}
+                            <h5 class="product-title">{{ reward.name }}</h5>
+                            <div class="points-info">{{ reward.points }} Points</div>
+                            <p>Stock: {{ reward.quantity }}</p>
+                            <div class="product-actions">
+                                <form method="POST" action="/redeem_reward">
+                                    <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                    <input type="hidden" name="email" value="{{ user.Email if user else '' }}">
+                                    <button type="submit" class="btn btn-success btn-sm" {% if user.Points < reward.points %}disabled{% endif %}>
+                                        Redeem Reward
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
-            {% if user %}
-            <form action="{{ url_for('redeem_reward') }}" method="POST">
-                <input type="hidden" name="email" value="{{ user.Email }}">
-                <input type="hidden" name="reward_name" value="{{ reward.name }}">
-                <button type="submit" class="btn-redeem" {% if user.Points < reward.points or reward.quantity <= 0 %}disabled{% endif %}>
-                    Redeem
-                </button>
-            </form>
-            {% endif %}
         </div>
-        {% endfor %}
     </div>
-</div>
-{% endblock %}
+
+    {% if is_admin %}
+        <!-- Keep existing admin forms at the bottom -->
+        <div style="margin-top: 40px; padding: 20px;">
+            <h2>Admin Controls</h2>
+            <!-- Your existing admin forms here -->
+        </div>
+    {% endif %}
+</body>
+</html>
