@@ -11,8 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 i = 5
 
 DB_FILE = 'admin_database.db'
-REWARDS_DB = 'rewards_db'
-rewardsdb = 'rewards.db'
+REWARDS_DB = 'rewards.db'
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -41,7 +40,7 @@ def initialize_databases():
             
     # Initialize rewards database
     with shelve.open(REWARDS_DB, flag='c', writeback=True) as db:
-        if len(db) == 0:
+        if len(db.dict) == 0:  # Use dict to check if database is empty
             db['Sample Reward'] = {
                 "points": 100,
                 "quantity": 10,
