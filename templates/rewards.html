@@ -77,17 +77,10 @@
     </div>
 
     <div class="catalogue-container">
-        {% if not is_admin %}
-            {% if user %}
-                <div class="user-info">
-                    <h3>Welcome, {{ user.Name }}!</h3>
-                    <p>You have {{ user.Points }} points available to redeem.</p>
-                </div>
-            {% endif %}
-        {% else %}
+        {% if not is_admin and user %}
             <div class="user-info">
-                <h3>Admin Mode</h3>
-                <p>Manage rewards below</p>
+                <h3>Welcome, {{ user.Name }}!</h3>
+                <p>You have {{ user.Points }} points available to redeem.</p>
             </div>
         {% endif %}
 
@@ -139,7 +132,7 @@
     {% if is_admin %}
         <div style="margin-top: 40px; padding: 20px;">
             <h2>Admin Controls</h2>
-
+            
             <!-- Add New Reward Form -->
             <div class="admin-form">
                 <h4>Add New Reward</h4>
@@ -171,7 +164,7 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <h5 class="card-title">{{ reward.name }}</h5>
-
+                            
                             <!-- Update Points Form -->
                             <form action="{{ url_for('update_points') }}" method="POST" class="mb-2">
                                 <input type="hidden" name="reward_name" value="{{ reward.name }}">
