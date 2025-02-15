@@ -536,7 +536,9 @@ def login():
 # Unified dashboard route
 @app.route('/admin_dashboard', methods=['GET'])
 def admin_dashboard():
-    session['role'] = 'admin'  # Set admin role in session
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+    session['role'] = 'admin'
     return render_template('admin_dashboard.html')
 
 
@@ -756,9 +758,8 @@ def view_users():
 @app.route('/rewards')
 def view_rewards():
     is_admin = session.get('role') == 'admin'
-    session.pop('_flashes', None)  # Clear any existing flash messages
-    print(f"Accessing /rewards. is_admin = {is_admin}, role = {session.get('role')}")
-
+    user = None
+    
     try:
         with shelve.open(REWARDS_DB, flag='c') as rewards:
             reward_list = [
