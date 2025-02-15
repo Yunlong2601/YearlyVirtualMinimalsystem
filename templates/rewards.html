@@ -2,18 +2,22 @@
 {% extends "base.html" %}
 {% block title %}Rewards{% endblock %}
 {% block content %}
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
-                {{ message }}
-            </div>
-            <script>
-                alert("{{ message }}");
-            </script>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+<div id="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
+                    {{ message }}
+                </div>
+                <script>
+                    window.onload = function() {
+                        alert("{{ message }}");
+                    }
+                </script>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
 <style>
     .centered-page {
         max-width: 1200px;
@@ -106,18 +110,7 @@
 </style>
 <div class="centered-page">
     <h1>Rewards</h1>
-    <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert" style="margin-top: 20px;">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-    </div>
+    
     <!-- User Information -->
     {% if user %}
     <div class="user-info">
