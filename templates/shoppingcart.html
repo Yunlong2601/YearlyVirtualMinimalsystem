@@ -44,6 +44,7 @@
                                         <input type="hidden" name="isbn" value="{{ book['isbn'] }}">
                                         <button type="submit" class="btn btn-danger btn-sm">Remove</button>
                                     </form>
+
                                 </td>
                             </tr>
                             {% endfor %}
@@ -112,7 +113,9 @@
                 cartData[isbn] = input.value;
             });
 
-            fetch("{{ url_for('update_cart') }}", {
+            let userId = "{{ user_id }}";  // Assuming user_id is passed to the template
+
+            fetch(`/update_cart/${userId}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

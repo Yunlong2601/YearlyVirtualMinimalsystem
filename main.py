@@ -866,10 +866,11 @@ def shopping_cart(user_id):
 
         with shelve.open(REWARDS_DB) as rewards:
             reward_list = [
-                {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")} 
+                {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")}
                 for k, v in rewards.items()
             ]
 
+        # Fetch cart for the specific user
         cart = get_user_cart(user_id)
         cart_total = sum(cart[isbn]['price'] * cart[isbn]['quantity'] for isbn in cart)
 
@@ -880,14 +881,15 @@ def shopping_cart(user_id):
 @app.route('/update_cart', methods=['POST'])
 def update_cart():
     """Update all cart item quantities at once and persist in Shelve."""
-    if 'cart' not in session:
-        session['cart'] = {}
+    user_id = session.get('user_id')  # Get user_id from session
+    if not user_id:
+        return jsonify({"success": False, "error": "User not logged in"}), 400
 
-    cart = session['cart']
     data = request.get_json()
-
     try:
-        with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
+        # Fetch cart for the specific user
+        cart = get_user_cart(user_id)
+        with shelve.open(DATABASE, writeback=True) as cart_db:
             books = cart_db.get('books', {})
 
             for isbn, new_quantity in data.items():
@@ -899,21 +901,21 @@ def update_cart():
                         'price': books[isbn]['price'],
                         'quantity': new_quantity
                     }
-                    # ✅ Save updated quantity in Shelve DB
+                    # Save updated quantity in Shelve DB
                     books[isbn]['quantity'] = new_quantity
                 elif isbn in cart:
                     del cart[isbn]  # Remove book if quantity is 0
                     if isbn in books:
                         del books[isbn]  # Update in DB too
 
-            # ✅ Save back to database
-            cart_db['books'] = books 
+            # Save back to database
+            cart_db['books'] = books
+            cart_db[user_id] = cart  # Save user's updated cart back
 
         session.modified = True
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 # Function to initialize the cart database
 def initialize_cart_database():
     with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
