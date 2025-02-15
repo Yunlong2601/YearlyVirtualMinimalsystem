@@ -68,8 +68,35 @@ img {
     background-color: #ffc107;
     color: black;
 }
+/* User Info Section Styling */
+.user-info {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.user-info h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+}
+.user-info p {
+    margin: 5px 0 0;
+    font-size: 1rem;
+    color: #666;
+}
 </style>
 <div class="centered-page">
+    <!-- Display User Information -->
+    {% if not is_admin and user %}
+    <div class="user-info">
+        <h3>Welcome, {{ user.username }}!</h3>
+        <p>You have <strong>{{ user.points }}</strong> points.</p>
+    </div>
+    {% endif %}
+
     <!-- Display Available Rewards -->
     <h2>Available Rewards</h2>
     <div class="table-container">

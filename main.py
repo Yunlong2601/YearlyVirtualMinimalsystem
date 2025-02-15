@@ -843,7 +843,10 @@ def add_points():
 
 @app.route('/shoppingcart')
 def shopping_cart():
-    return render_template('shoppingcart.html')
+    try:
+        return render_template('shoppingcart.html')
+    except Exception as e:
+        return f"Error: {e}", 500  # This will print the error in the browser
 
 
 
