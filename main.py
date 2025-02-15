@@ -11,7 +11,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 i = 5
 
 DB_FILE = 'admin_database.db'
-rewardsdb= 'rewards.db'
+REWARDS_DB = 'rewards_db'
+rewardsdb = 'rewards.db'
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
