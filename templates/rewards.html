@@ -7,11 +7,9 @@
             <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
                 {{ message }}
             </div>
-            {% if category == 'success' and 'redeemed' in message %}
             <script>
                 alert("{{ message }}");
             </script>
-            {% endif %}
         {% endfor %}
     {% endif %}
 {% endwith %}
