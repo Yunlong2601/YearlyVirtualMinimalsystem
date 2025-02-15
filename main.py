@@ -851,7 +851,11 @@ def add_points():
     return redirect(url_for('view_rewards'))
 
 
-
+def get_user_cart(user_id):
+    with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
+        if user_id not in cart_db:
+            cart_db[user_id] = {}
+        return cart_db[user_id]
 
 @app.route('/shoppingcart/<user_id>')
 def shopping_cart(user_id):
@@ -866,7 +870,7 @@ def shopping_cart(user_id):
                 for k, v in rewards.items()
             ]
 
-        cart = session.get('cart', {})
+        cart = get_user_cart(user_id)
         cart_total = sum(cart[isbn]['price'] * cart[isbn]['quantity'] for isbn in cart)
 
         return render_template('shoppingcart.html', user_id=user_id, books=books, rewards=reward_list, cart=cart, cart_total=cart_total)
