@@ -824,7 +824,6 @@ def redeem_reward():
                 flash(f'{user_email} successfully redeemed {reward_name}.', 'success')
 
             reward['quantity'] -= 1
-            flash(f'Successfully redeemed {reward_name} for {reward["points"]} points!', 'success')
             return redirect(url_for('view_rewards'))
 
     except Exception as e:
@@ -879,40 +878,39 @@ def shopping_cart(user_id):
     except Exception as e:
         return f"Error: {e}", 500
 
-@app.route('/update_cart/<user_id>', methods=['POST'])
-def update_cart(user_id):
+@app.route('/update_cart', methods=['POST'])
+def update_cart():
     """Update all cart item quantities at once and persist in Shelve."""
-    if 'cart' not in session:
-        session['cart'] = {}
+    user_id = session.get('user_id')  # Get user_id from session
+    if not user_id:
+        return jsonify({"success": False, "error": "User not logged in"}), 400
 
-    cart = session['cart']
     data = request.get_json()
-
     try:
-        # Open the cart database (assume the cart is stored per user)
-        with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
-            user_cart = cart_db.get(user_id, {})  # Get user-specific cart
+        # Fetch cart for the specific user
+        cart = get_user_cart(user_id)
+        with shelve.open(DATABASE, writeback=True) as cart_db:
             books = cart_db.get('books', {})
 
             for isbn, new_quantity in data.items():
                 new_quantity = int(new_quantity)
 
                 if isbn in books and new_quantity > 0:
-                    user_cart[isbn] = {
+                    cart[isbn] = {
                         'title': books[isbn]['title'],
                         'price': books[isbn]['price'],
                         'quantity': new_quantity
                     }
-                    # ✅ Save updated quantity in Shelve DB
+                    # Save updated quantity in Shelve DB
                     books[isbn]['quantity'] = new_quantity
-                elif isbn in user_cart:
-                    del user_cart[isbn]  # Remove book if quantity is 0
+                elif isbn in cart:
+                    del cart[isbn]  # Remove book if quantity is 0
                     if isbn in books:
                         del books[isbn]  # Update in DB too
 
-            # Save the updated user cart back to the database
-            cart_db[user_id] = user_cart
+            # Save back to database
             cart_db['books'] = books
+            cart_db[user_id] = cart  # Save user's updated cart back
 
         session.modified = True
         return jsonify({"success": True})

@@ -134,7 +134,7 @@
                 <p class="reward-quantity">Stock Left: {{ reward.quantity }}</p>
             </div>
             {% if user %}
-            <form action="{{ url_for('redeem_reward') }}" method="POST" onsubmit="return confirmRedeem({{ reward.points }}, '{{ reward.name }}')">
+            <form action="{{ url_for('redeem_reward') }}" method="POST">
                 <input type="hidden" name="email" value="{{ user.Email }}">
                 <input type="hidden" name="reward_name" value="{{ reward.name }}">
                 <button type="submit" class="btn-redeem" {% if user.Points < reward.points or reward.quantity <= 0 %}disabled{% endif %}>
@@ -142,12 +142,6 @@
                 </button>
             </form>
             {% endif %}
-
-            <script>
-                function confirmRedeem(points, rewardName) {
-                    return confirm(`Are you sure you want to redeem ${rewardName} for ${points} points?`);
-                }
-            </script>
         </div>
         {% endfor %}
     </div>
