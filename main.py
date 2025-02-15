@@ -983,46 +983,6 @@ def remove_reward_from_cart():
     return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
 
 
-# Initialize an empty cart for the session (if not already present)
-@app.before_request
-def init_cart():
-    if 'cart' not in session:
-        session['cart'] = {}
-
-@app.route('/add_to_cart/<isbn>', methods=['POST'])
-def add_to_cart(isbn):
-    """Add a book to the cart or update its quantity."""
-    quantity = request.json.get('quantity', 1)  # Get quantity from request, default to 1
-
-    # Validate the input (ensure quantity is an integer and greater than 0)
-    try:
-        quantity = int(quantity)
-        if quantity <= 0:
-            raise ValueError("Quantity must be positive")
-    except ValueError:
-        return jsonify({"success": False, "message": "Invalid quantity"}), 400
-
-    # Retrieve the book from your database (or predefined data)
-    with shelve.open('books_db') as book_db:
-        book = book_db.get(isbn, None)
-
-    if book is None:
-        return jsonify({"success": False, "message": "Book not found"}), 404
-
-    # Update the cart session
-    cart = session['cart']
-    if isbn in cart:
-        cart[isbn]['quantity'] += quantity  # Increase quantity if the book is already in the cart
-    else:
-        cart[isbn] = {
-            'title': book['title'],
-            'price': book['price'],
-            'quantity': quantity
-        }
-
-    # Save changes to the session
-    session.modified = True
-    return jsonify({"success": True, "message": "Item added to cart"})
 
 
 
