@@ -18,90 +18,164 @@
     .centered-page {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 40px 20px;
     }
     h1 {
-        font-weight: bold;
-        margin-bottom: 20px;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 30px;
         text-align: center;
+        color: #1a1a1a;
     }
     .user-info {
-        background: #f0f0f0;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 8px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 25px;
+        margin-bottom: 30px;
+        border-radius: 15px;
         text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    .user-info h3 {
+        margin-bottom: 10px;
+        color: #2c3e50;
     }
     .rewards-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 30px;
+        margin-top: 30px;
     }
     .reward-card {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
         text-align: center;
-        width: 200px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .reward-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     }
     .reward-image img {
         width: 100%;
-        height: 150px;
+        height: 180px;
         object-fit: cover;
-        border-radius: 5px;
+        border-radius: 10px;
+        margin-bottom: 15px;
     }
     .reward-info {
-        margin-top: 10px;
+        margin-top: 15px;
     }
     .reward-name {
-        font-weight: bold;
+        font-size: 1.2rem;
+        font-weight: 600;
         text-transform: capitalize;
+        color: #1a1a1a;
+        margin-bottom: 8px;
     }
     .reward-points {
-        color: #555;
+        font-size: 1.1rem;
+        color: #2c3e50;
+        font-weight: 500;
+        margin-bottom: 8px;
     }
     .reward-quantity {
-        font-size: 14px;
-        color: #333;
-        margin-top: 5px;
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 8px;
     }
     .btn-redeem {
-        display: block;
-        margin: 10px auto 0;
-        border-radius: 5px;
-        padding: 10px;
-        font-size: 16px;
-        background-color: #ffc107;
-        color: #000;
+        width: 100%;
+        margin-top: 15px;
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: 500;
+        background-color: #007bff;
+        color: white;
         border: none;
+        border-radius: 8px;
         cursor: pointer;
-        transition: background-color 0.3s ease;
+        transition: all 0.3s ease;
     }
     .btn-redeem:hover {
-        background-color: #e0a800;
+        background-color: #0056b3;
+        transform: translateY(-2px);
     }
     .btn-redeem:disabled {
-        background-color: #ccc;
+        background-color: #e9ecef;
+        color: #6c757d;
         cursor: not-allowed;
+        transform: none;
     }
     .alert {
-        padding: 10px;
-        margin: 10px 0;
-        border-radius: 4px;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 8px;
         text-align: center;
+        font-weight: 500;
     }
     .alert-success {
         background-color: #d4edda;
         color: #155724;
-        border: 1px solid #c3e6cb;
+        border: none;
+        box-shadow: 0 2px 4px rgba(21, 87, 36, 0.1);
     }
     .alert-danger {
         background-color: #f8d7da;
         color: #721c24;
-        border: 1px solid #f5c6cb;
+        border: none;
+        box-shadow: 0 2px 4px rgba(114, 28, 36, 0.1);
+    }
+    
+    /* Admin Controls Styling */
+    .admin-controls {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 15px;
+        margin: 40px 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    .admin-controls h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+    .admin-controls h3 {
+        color: #495057;
+        margin: 20px 0 15px;
+    }
+    .admin-controls input {
+        padding: 10px;
+        margin: 5px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+    .admin-controls button {
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+    .admin-controls button:hover {
+        background: #0056b3;
+    }
+    .admin-controls button[style*="background-color: #dc3545"] {
+        background: #dc3545 !important;
+    }
+    .admin-controls button[style*="background-color: #dc3545"]:hover {
+        background: #c82333 !important;
+    }
+    .reward-update-form {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 </style>
 
