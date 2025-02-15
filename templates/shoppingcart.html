@@ -13,39 +13,43 @@
         <div class="row">
             <div class="col-md-8">
                 <h2>Your Shopping Cart</h2>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th scope="col">Item</th>
-                            <th scope="col">Price</th>
-                            <th scope="col">Quantity</th>
-                            <th scope="col">Subtotal</th>
-                            <th scope="col">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for book in books.values() %}
-                        <tr>
-                            <td>{{ book['title'] }}</td>
-                            <td class="price">{{ book['price'] }}</td>
-                            <td>
-                                <input type="number" class="form-control quantity" 
-                                       value="{{ book['stock'] }}" 
-                                       min="1" required 
-                                       data-price="{{ book['price'] }}"
-                                       oninput="updateSubtotal(this)">
-                            </td>
-                            <td class="subtotal">{{ book['price'] * book['stock'] }}</td>
-                            <td>
-                                <form action="{{ url_for('remove_from_cart', isbn=book['isbn']) }}" method="POST">
-                                    <input type="hidden" name="isbn" value="{{ book['isbn'] }}">
-                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <form id="cart-form">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Item</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Quantity</th>
+                                <th scope="col">Subtotal</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for book in books.values() %}
+                            <tr>
+                                <td>{{ book['title'] }}</td>
+                                <td class="price">{{ book['price'] }}</td>
+                                <td>
+                                    <input type="number" class="form-control quantity" 
+                                           name="quantities[{{ book['isbn'] }}]" 
+                                           value="{{ book['stock'] }}" 
+                                           min="1" required 
+                                           data-price="{{ book['price'] }}"
+                                           oninput="updateSubtotal(this)">
+                                </td>
+                                <td class="subtotal">{{ book['price'] * book['stock'] }}</td>
+                                <td>
+                                    <form action="{{ url_for('remove_from_cart', isbn=book['isbn']) }}" method="POST">
+                                        <input type="hidden" name="isbn" value="{{ book['isbn'] }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-primary btn-block" onclick="updateCart()">Update Cart</button>
+                </form>
             </div>
             <div class="col-md-4">
                 <div class="card">
@@ -97,6 +101,30 @@
             // Update total in UI
             document.getElementById('cart-total').textContent = total.toFixed(2);
             document.getElementById('cart-total-final').textContent = total.toFixed(2);
+        }
+
+        function updateCart() {
+            let cartData = {};
+            document.querySelectorAll('.quantity').forEach(input => {
+                let isbn = input.name.match(/\d+/)[0]; // Extract ISBN from name
+                cartData[isbn] = input.value;
+            });
+
+            fetch("{{ url_for('update_cart') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(cartData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Cart updated successfully!");
+                } else {
+                    alert("Error updating cart.");
+                }
+            });
         }
     </script>
 
