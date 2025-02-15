@@ -40,13 +40,17 @@ def initialize_databases():
             
     # Initialize rewards database
     with shelve.open(REWARDS_DB, flag='c', writeback=True) as db:
-        if len(db.dict) == 0:  # Use dict to check if database is empty
+        if len(db) == 0:
             db['Sample Reward'] = {
                 "points": 100,
                 "quantity": 10,
                 "image_url": ""
             }
-            db.sync()
+            db['Premium Reward'] = {
+                "points": 500,
+                "quantity": 5,
+                "image_url": ""
+            }
 
 
 @app.route('/simulate_purchase/<isbn>', methods=['POST'])
@@ -659,7 +663,7 @@ def view_rewards():
     is_admin = session.get('role') == 'admin'
     print(f"Accessing /rewards. is_admin = {is_admin}")
 
-    with shelve.open(REWARDS_DB) as rewards:
+    with shelve.open(REWARDS_DB, flag='c') as rewards:
         reward_list = [
             {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")} 
             for k, v in rewards.items()
@@ -670,7 +674,45 @@ def view_rewards():
         return render_template('rewards.html', rewards=reward_list, is_admin=True)
     else:
         print("Rendering user rewards page.")
-        return render_template('user.html', rewards=reward_list)
+        return render_template('rewards.html', rewards=reward_list, is_admin=False)
+
+@app.route('/redeem_reward', methods=['POST'])
+def redeem_reward():
+    user_id = request.form.get('user_id')
+    reward_name = request.form.get('reward_name')
+    
+    if user_id == 'Guest':
+        flash('Please log in to redeem rewards', 'danger')
+        return redirect(url_for('view_users'))
+        
+    with shelve.open(REWARDS_DB, flag='c', writeback=True) as rewards:
+        if reward_name not in rewards:
+            flash('Reward not found', 'danger')
+            return redirect(url_for('view_users'))
+            
+        reward = rewards[reward_name]
+        
+        with shelve.open(DB_FILE, flag='c', writeback=True) as users:
+            if user_id not in users:
+                flash('User not found', 'danger')
+                return redirect(url_for('view_users'))
+                
+            user = users[user_id]
+            
+            if user['Points'] < reward['points']:
+                flash('Not enough points', 'danger')
+                return redirect(url_for('view_users'))
+                
+            if reward['quantity'] <= 0:
+                flash('Reward out of stock', 'danger')
+                return redirect(url_for('view_users'))
+                
+            # Process redemption
+            user['Points'] -= reward['points']
+            reward['quantity'] -= 1
+            
+            flash(f'Successfully redeemed {reward_name}', 'success')
+            return redirect(url_for('view_users'))
 
 @app.route('/add-points', methods=['POST'])
 def add_points():
