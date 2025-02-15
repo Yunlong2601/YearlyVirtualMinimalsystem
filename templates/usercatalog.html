@@ -169,7 +169,10 @@
                         </div>
                         <div class="product-actions">
                             <button onclick="location.href='{{ url_for('book_details', isbn=isbn) }}'" class="btn btn-info btn-sm">View Details</button>
-                            <form method="POST" action="{{ url_for('add_to_cart', isbn=isbn) }}">
+
+                            <!-- Add to Cart Form -->
+                            <form id="add-to-cart-form-{{ isbn }}" method="POST" action="{{ url_for('add_to_cart', isbn=isbn) }}">
+                                <input type="number" id="quantity-{{ isbn }}" name="quantity" value="1" min="1" max="{{ book.stock }}" class="form-control" style="width: 80px; margin-bottom: 10px;">
                                 <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
                             </form>
                         </div>
