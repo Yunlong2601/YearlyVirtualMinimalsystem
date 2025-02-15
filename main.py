@@ -883,8 +883,8 @@ def update_cart():
     data = request.get_json()
 
     try:
-        with shelve.open(DATABASE, writeback=True) as db:
-            books = db.get('books', {})
+        with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
+            books = cart_db.get('books', {})
 
             for isbn, new_quantity in data.items():
                 new_quantity = int(new_quantity)
@@ -896,13 +896,14 @@ def update_cart():
                         'quantity': new_quantity
                     }
                     # ✅ Save updated quantity in Shelve DB
-                    books[isbn]['stock'] = new_quantity
+                    books[isbn]['quantity'] = new_quantity
                 elif isbn in cart:
                     del cart[isbn]  # Remove book if quantity is 0
-                    books[isbn]['stock'] = 0  # Update in DB too
+                    if isbn in books:
+                        del books[isbn]  # Update in DB too
 
             # ✅ Save back to database
-            db['books'] = books 
+            cart_db['books'] = books 
 
         session.modified = True
         return jsonify({"success": True})
