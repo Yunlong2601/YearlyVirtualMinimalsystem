@@ -130,10 +130,77 @@
     </div>
 
     {% if is_admin %}
-        <!-- Keep existing admin forms at the bottom -->
         <div style="margin-top: 40px; padding: 20px;">
             <h2>Admin Controls</h2>
-            <!-- Your existing admin forms here -->
+            
+            <!-- Add New Reward Form -->
+            <div class="admin-form">
+                <h4>Add New Reward</h4>
+                <form action="{{ url_for('add_reward') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="reward_name" class="form-label">Reward Name:</label>
+                        <input type="text" class="form-control" id="reward_name" name="reward_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="points_required" class="form-label">Points Required:</label>
+                        <input type="number" class="form-control" id="points_required" name="points_required" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Initial Quantity:</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="image_url" class="form-label">Image URL:</label>
+                        <input type="url" class="form-control" id="image_url" name="image_url">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Reward</button>
+                </form>
+            </div>
+
+            <!-- Edit Existing Rewards -->
+            <div class="admin-form mt-4">
+                <h4>Edit Existing Rewards</h4>
+                {% for reward in rewards %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ reward.name }}</h5>
+                            
+                            <!-- Update Points Form -->
+                            <form action="{{ url_for('update_points') }}" method="POST" class="mb-2">
+                                <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="new_points" value="{{ reward.points }}">
+                                    <button type="submit" class="btn btn-outline-primary">Update Points</button>
+                                </div>
+                            </form>
+
+                            <!-- Update Quantity Form -->
+                            <form action="{{ url_for('update_quantity') }}" method="POST" class="mb-2">
+                                <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="new_quantity" value="{{ reward.quantity }}">
+                                    <button type="submit" class="btn btn-outline-primary">Update Quantity</button>
+                                </div>
+                            </form>
+
+                            <!-- Update Image Form -->
+                            <form action="{{ url_for('update_image') }}" method="POST" class="mb-2">
+                                <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                <div class="input-group">
+                                    <input type="url" class="form-control" name="new_image_url" value="{{ reward.image_url }}">
+                                    <button type="submit" class="btn btn-outline-primary">Update Image</button>
+                                </div>
+                            </form>
+
+                            <!-- Remove Reward Form -->
+                            <form action="{{ url_for('remove_reward') }}" method="POST">
+                                <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                <button type="submit" class="btn btn-danger">Remove Reward</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     {% endif %}
 </body>
