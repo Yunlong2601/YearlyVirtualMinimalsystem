@@ -850,77 +850,87 @@ def add_points():
 
     return redirect(url_for('view_rewards'))
 
+@app.route('/process-transaction', methods=['POST'])
+def process_transaction():
+    user_id = request.form.get('user_id')
+    transaction_amount = float(request.form.get('amount'))
+    conversion_rate = 1
+    points_earned = int(transaction_amount * conversion_rate)
+    with shelve.open("users.db.dat", writeback=True) as users:
+        if user_id in users:
+            users[user_id]["points"] += points_earned
+            flash(f"You earned {points_earned} points for your ${transaction_amount} purchase!", "success")
+        else:
+            flash(f"User ID '{user_id}' does not exist.", "danger")
 
-def get_user_cart(user_id):
-    with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
-        if user_id not in cart_db:
-            cart_db[user_id] = {}
-        return cart_db[user_id]
+    return redirect(url_for('view_users'))
+
+
 
 @app.route('/shoppingcart/<user_id>')
 def shopping_cart(user_id):
     """Display the shopping cart page with books and rewards."""
     try:
-        with shelve.open(DATABASE) as db:
-            books = db.get('books', {})
+        # Fetch the cart and books from the databases
+        with shelve.open(DATABASE_CARTS) as cart_db:
+            user_cart = cart_db.get(user_id, {})  # Retrieve user-specific cart
+            books = cart_db.get('books', {})
 
+        # Calculate cart total
+        cart_total = sum(user_cart[isbn]['price'] * user_cart[isbn]['quantity'] for isbn in user_cart)
+
+        # Retrieve rewards data
         with shelve.open(REWARDS_DB) as rewards:
             reward_list = [
-                {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")}
+                {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")} 
                 for k, v in rewards.items()
             ]
 
-        # Fetch cart for the specific user
-        cart = get_user_cart(user_id)
-        cart_total = sum(cart[isbn]['price'] * cart[isbn]['quantity'] for isbn in cart)
-
-        return render_template('shoppingcart.html', user_id=user_id, books=books, rewards=reward_list, cart=cart, cart_total=cart_total)
+        return render_template('shoppingcart.html', user_id=user_id, books=books, cart=user_cart, cart_total=cart_total, reward_list=reward_list)
     except Exception as e:
         return f"Error: {e}", 500
 
-@app.route('/update_cart', methods=['POST'])
-def update_cart():
-    """Update all cart item quantities at once and persist in Shelve."""
-    user_id = session.get('user_id')  # Get user_id from session
-    if not user_id:
-        return jsonify({"success": False, "error": "User not logged in"}), 400
 
+@app.route('/update_cart/<user_id>', methods=['POST'])
+def update_cart(user_id):
+    """Update all cart item quantities at once and persist in Shelve."""
+    if 'cart' not in session:
+        session['cart'] = {}
+
+    cart = session['cart']
     data = request.get_json()
+
     try:
-        # Fetch cart for the specific user
-        cart = get_user_cart(user_id)
-        with shelve.open(DATABASE, writeback=True) as cart_db:
+        # Open the cart database (assume cart is stored per user)
+        with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
+            user_cart = cart_db.get(user_id, {})  # Get user-specific cart
             books = cart_db.get('books', {})
 
+            # Update quantities in the user's cart
             for isbn, new_quantity in data.items():
                 new_quantity = int(new_quantity)
 
                 if isbn in books and new_quantity > 0:
-                    cart[isbn] = {
+                    user_cart[isbn] = {
                         'title': books[isbn]['title'],
                         'price': books[isbn]['price'],
                         'quantity': new_quantity
                     }
                     # Save updated quantity in Shelve DB
                     books[isbn]['quantity'] = new_quantity
-                elif isbn in cart:
-                    del cart[isbn]  # Remove book if quantity is 0
+                elif isbn in user_cart:
+                    del user_cart[isbn]  # Remove book if quantity is 0
                     if isbn in books:
                         del books[isbn]  # Update in DB too
 
-            # Save back to database
+            # Save updated cart and books back to the database
+            cart_db[user_id] = user_cart
             cart_db['books'] = books
-            cart_db[user_id] = cart  # Save user's updated cart back
 
         session.modified = True
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-# Function to initialize the cart database
-def initialize_cart_database():
-    with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
-        if 'books' not in cart_db:
-            cart_db['books'] = {}
 
 
 @app.route('/remove_from_cart/<isbn>', methods=['POST'])
@@ -937,6 +947,12 @@ def remove_from_cart(isbn):
 
     return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
 
+
+# Function to initialize the cart database
+def initialize_cart_database():
+    with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
+        if 'books' not in cart_db:
+            cart_db['books'] = {}
 
 
 @app.route('/update_reward_quantity', methods=['POST'])

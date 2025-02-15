@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Rewards{% endblock %}
 {% block content %}
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
-                {{ message }}
-            </div>
-            <script>
-                alert("{{ message }}");
-            </script>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+<!-- Flash Messages Section -->
+<div class="centered-page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
 <style>
     .centered-page {
         max-width: 1200px;
@@ -106,7 +107,6 @@
 
 <div class="centered-page">
     <h1>Rewards</h1>
-
     <!-- User Information -->
     {% if user %}
     <div class="user-info">
@@ -114,7 +114,6 @@
         <p>Available Points: {{ user.Points }}</p>
     </div>
     {% endif %}
-
     <!-- Rewards Grid -->
     <div class="rewards-container">
         {% for reward in rewards %}
@@ -150,7 +149,7 @@
 {% if session.get('role') == 'admin' %}
 <div class="admin-controls" style="margin: 20px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
     <h2>Admin Controls</h2>
-    
+
     <!-- Add New Reward Form -->
     <div class="add-reward-form" style="margin-bottom: 20px;">
         <h3>Add New Reward</h3>
@@ -162,35 +161,35 @@
             <button type="submit">Add Reward</button>
         </form>
     </div>
-    
+
     <!-- Update Existing Rewards -->
     <div class="update-rewards">
         <h3>Update Existing Rewards</h3>
         {% for reward in rewards %}
         <div class="reward-update-form" style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px;">
             <h4>{{ reward.name }}</h4>
-            
+
             <!-- Update Image -->
             <form action="{{ url_for('update_image') }}" method="POST" style="margin-bottom: 10px;">
                 <input type="hidden" name="reward_name" value="{{ reward.name }}">
                 <input type="text" name="new_image_url" placeholder="New Image URL">
                 <button type="submit">Update Image</button>
             </form>
-            
+
             <!-- Update Quantity -->
             <form action="{{ url_for('update_quantity') }}" method="POST" style="margin-bottom: 10px;">
                 <input type="hidden" name="reward_name" value="{{ reward.name }}">
                 <input type="number" name="new_quantity" placeholder="New Quantity" value="{{ reward.quantity }}">
                 <button type="submit">Update Quantity</button>
             </form>
-            
+
             <!-- Update Points -->
             <form action="{{ url_for('update_points') }}" method="POST" style="margin-bottom: 10px;">
                 <input type="hidden" name="reward_name" value="{{ reward.name }}">
                 <input type="number" name="new_points" placeholder="New Points" value="{{ reward.points }}">
                 <button type="submit">Update Points</button>
             </form>
-            
+
             <!-- Remove Reward -->
             <form action="{{ url_for('remove_reward') }}" method="POST">
                 <input type="hidden" name="reward_name" value="{{ reward.name }}">

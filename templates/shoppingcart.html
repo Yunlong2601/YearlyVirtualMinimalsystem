@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -25,34 +24,29 @@
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
-                        {% if books %}
-                            <tbody>
-                                {% for book in books.values() %}
-                                <tr>
-                                    <td>{{ book['title'] }}</td>
-                                    <td class="price">{{ book['price'] }}</td>
-                                    <td>
-                                        <input type="number" class="form-control quantity" 
-                                               name="quantities[{{ book['isbn'] }}]" 
-                                               value="{{ book['stock'] }}" 
-                                               min="1" required 
-                                               data-price="{{ book['price'] }}"
-                                               oninput="updateSubtotal(this)">
-                                    </td>
-                                    <td class="subtotal">{{ book['price'] * book['stock'] }}</td>
-                                    <td>
-                                        <form action="{{ url_for('remove_from_cart', isbn=book['isbn']) }}" method="POST">
-                                            <input type="hidden" name="isbn" value="{{ book['isbn'] }}">
-                                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        {% else %}
-                            <p>Your cart is empty. Add items to your cart.</p>
-                        {% endif %}
-
+                        <tbody>
+                            {% for isbn, book in cart.items() %}
+                            <tr>
+                                <td>{{ book['title'] }}</td>
+                                <td class="price">{{ book['price'] }}</td>
+                                <td>
+                                    <input type="number" class="form-control quantity" 
+                                           name="quantities[{{ isbn }}]" 
+                                           value="{{ book['quantity'] }}" 
+                                           min="1" required 
+                                           data-price="{{ book['price'] }}"
+                                           oninput="updateSubtotal(this)">
+                                </td>
+                                <td class="subtotal">{{ book['price'] * book['quantity'] }}</td>
+                                <td>
+                                    <form action="{{ url_for('remove_from_cart', isbn=isbn) }}" method="POST">
+                                        <input type="hidden" name="isbn" value="{{ isbn }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
                     </table>
                     <button type="button" class="btn btn-primary btn-block" onclick="updateCart()">Update Cart</button>
                 </form>
@@ -75,7 +69,6 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 Total
                                 <span id="cart-total-final" class="badge badge-primary badge-pill">{{ cart_total }}</span>
-
                             </li>
                         </ul>
                         <button class="btn btn-success btn-block mt-3">Proceed to Checkout</button>
@@ -119,6 +112,10 @@
 
             let userId = "{{ user_id }}";  // Assuming user_id is passed to the template
 
+            // Show loading alert or message
+            alert("Your cart is being updated...");
+
+            // Send the update request
             fetch(`/update_cart/${userId}`, {
                 method: "POST",
                 headers: {
@@ -129,10 +126,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Notify user of success
                     alert("Cart updated successfully!");
+                    // Optionally, you can also call updateTotal() here to refresh the cart total.
+                    updateTotal();  // This will recalculate the total and update the UI
                 } else {
-                    alert("Error updating cart.");
+                    // Notify user of failure
+                    alert("Error updating cart. Please try again.");
                 }
+            })
+            .catch(error => {
+                // Notify user if there was an issue with the request
+                alert("An error occurred while updating the cart. Please try again.");
             });
         }
     </script>
