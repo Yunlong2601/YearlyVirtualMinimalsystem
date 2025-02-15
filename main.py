@@ -536,6 +536,7 @@ def login():
 # Unified dashboard route
 @app.route('/admin_dashboard', methods=['GET'])
 def admin_dashboard():
+    session['role'] = 'admin'  # Set admin role in session
     return render_template('admin_dashboard.html')
 
 
@@ -756,7 +757,7 @@ def view_users():
 def view_rewards():
     is_admin = session.get('role') == 'admin'
     session.pop('_flashes', None)  # Clear any existing flash messages
-    print(f"Accessing /rewards. is_admin = {is_admin}")
+    print(f"Accessing /rewards. is_admin = {is_admin}, role = {session.get('role')}")
 
     try:
         with shelve.open(REWARDS_DB, flag='c') as rewards:
