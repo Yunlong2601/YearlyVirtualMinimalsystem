@@ -755,6 +755,7 @@ def view_users():
 @app.route('/rewards')
 def view_rewards():
     is_admin = session.get('role') == 'admin'
+    session.pop('_flashes', None)  # Clear any existing flash messages
     print(f"Accessing /rewards. is_admin = {is_admin}")
 
     try:
