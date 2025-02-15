@@ -37,6 +37,22 @@
             border-radius: 4px;
         }
     </style>
+    <script>
+        // Show alert when login fails
+        function showErrorAlert() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('error')) {
+                let message = "";
+                if (urlParams.get('error') === "1") {
+                    message = "Invalid password!";
+                } else if (urlParams.get('error') === "2") {
+                    message = "User not found!";
+                }
+                if (message) alert(message);
+            }
+        }
+        showErrorAlert();
+    </script>
 </head>
 <body>
 

@@ -1,7 +1,8 @@
-{% extends "base.html" %}
+
 {% block title %}Rewards{% endblock %}
 {% block content %}
 <style>
+    /* Custom CSS for a cleaner design */
     .centered-page {
         max-width: 1200px;
         margin: 0 auto;
@@ -11,7 +12,7 @@
         font-weight: bold;
         margin-bottom: 20px;
         text-align: center;
-        color: #343a40;
+        color: #343a40; /* Dark gray for headings */
     }
     .table-container {
         overflow-x: auto;
@@ -30,17 +31,17 @@
         padding: 12px;
         text-align: center;
         vertical-align: middle;
-        border: 1px solid #dee2e6;
+        border: 1px solid #dee2e6; /* Light gray border */
     }
     .table thead th {
-        background-color: #343a40;
+        background-color: #343a40; /* Dark gray header */
         color: white;
     }
     .table tbody tr:nth-child(odd) {
-        background-color: #f8f9fa;
+        background-color: #f8f9fa; /* Light gray for odd rows */
     }
     .table tbody tr:hover {
-        background-color: #e9ecef;
+        background-color: #e9ecef; /* Slightly darker gray on hover */
     }
     .form-container {
         background-color: white;
@@ -51,16 +52,16 @@
     }
     .form-container h2 {
         margin-bottom: 20px;
-        color: #343a40;
+        color: #343a40; /* Dark gray for form headings */
     }
     .form-label {
         font-weight: bold;
-        color: #495057;
+        color: #495057; /* Medium gray for labels */
     }
     .form-control {
         margin-bottom: 15px;
         border-radius: 5px;
-        border: 1px solid #ced4da;
+        border: 1px solid #ced4da; /* Light gray border */
     }
     .btn {
         font-weight: bold;
@@ -69,23 +70,23 @@
         transition: background-color 0.3s ease;
     }
     .btn-warning {
-        background-color: #ffc107;
+        background-color: #ffc107; /* Yellow for warning buttons */
         border-color: #ffc107;
     }
     .btn-success {
-        background-color: #28a745;
+        background-color: #28a745; /* Green for success buttons */
         border-color: #28a745;
     }
     .btn-primary {
-        background-color: #007bff;
+        background-color: #007bff; /* Blue for primary buttons */
         border-color: #007bff;
     }
     .btn-danger {
-        background-color: #dc3545;
+        background-color: #dc3545; /* Red for danger buttons */
         border-color: #dc3545;
     }
     .btn-info {
-        background-color: #17a2b8;
+        background-color: #17a2b8; /* Teal for info buttons */
         border-color: #17a2b8;
     }
     .alert {
@@ -96,22 +97,24 @@
         display: flex;
         gap: 10px;
         align-items: center;
-        justify-content: center;
+        justify-content: center; /* Center the buttons */
     }
     .input-group input {
-        width: 80px;
-        text-align: center;
+        width: 80px; /* Smaller width for quantity input */
+        text-align: center; /* Center the text in the input */
     }
     .btn-small {
-        padding: 8px 16px;
-        font-size: 14px;
+        padding: 8px 16px; /* Smaller buttons */
+        font-size: 14px; /* Smaller font size */
     }
+    /* Add some spacing between sections */
     .section-spacing {
         margin-bottom: 40px;
     }
 </style>
 <div class="centered-page">
     <h1 class="mb-4">Available Rewards</h1>
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         <div class="mt-3">
@@ -124,6 +127,7 @@
         </div>
     {% endif %}
     {% endwith %}
+    <!-- Rewards Table -->
     <div class="table-container section-spacing">
         <table class="table">
             <thead class="table-dark">
@@ -131,7 +135,7 @@
                     <th>Reward Name</th>
                     <th>Points Required</th>
                     <th>Quantity</th>
-                    <th>Image</th>
+                    <th>Image</th> <!-- New column for reward images -->
                     {% if is_admin %}
                     <th>Actions</th>
                     {% endif %}
@@ -144,6 +148,7 @@
                     <td>{{ reward.points }}</td>
                     <td>{{ reward.quantity }}</td>
                     <td>
+                        <!-- Display Reward Image -->
                         {% if reward.image_url %}
                         <img src="{{ reward.image_url }}" alt="{{ reward.name }}" style="width:50px; height:auto;">
                         {% else %}
@@ -153,16 +158,19 @@
                     {% if is_admin %}
                     <td>
                         <div class="input-group">
+                            <!-- Form to update quantity -->
                             <form action="{{ url_for('update_quantity') }}" method="POST" class="d-inline">
                                 <input type="hidden" name="reward_name" value="{{ reward.name }}">
                                 <input type="number" class="form-control" name="new_quantity" value="{{ reward.quantity }}" min="0" required>
                                 <button type="submit" class="btn btn-info btn-small">Update Qty</button>
                             </form>
+                            <!-- Form to update points -->
                             <form action="{{ url_for('update_points') }}" method="POST" class="d-inline">
                                 <input type="hidden" name="reward_name" value="{{ reward.name }}">
                                 <input type="number" class="form-control" name="new_points" value="{{ reward.points }}" min="0" required>
                                 <button type="submit" class="btn btn-primary btn-small">Update Pts</button>
                             </form>
+                            <!-- Form to remove reward -->
                             <form action="{{ url_for('remove_reward') }}" method="POST" class="d-inline">
                                 <input type="hidden" name="reward_name" value="{{ reward.name }}">
                                 <button type="submit" class="btn btn-danger btn-small">Remove</button>
@@ -175,6 +183,7 @@
             </tbody>
         </table>
     </div>
+    <!-- Redeem Rewards Section -->
     <div class="form-container section-spacing">
         <h2>Redeem Rewards</h2>
         <form action="{{ url_for('redeem_reward') }}" method="POST">
@@ -184,6 +193,7 @@
                     <option value="" disabled selected>Choose a reward...</option>
                     {% for reward in rewards %}
                     <option value="{{ reward.name }}">
+                        <!-- Display Reward Image -->
                         {% if reward.image_url %}
                         <img src="{{ reward.image_url }}" alt="{{ reward.name }}" style="width:50px; height:auto;">
                         {% endif %}
@@ -200,6 +210,7 @@
         </form>
     </div>
     {% if is_admin %}
+    <!-- Admin Update Reward Image Form -->
     <div class="form-container section-spacing">
         <h2>Update Reward Image</h2>
         <form action="{{ url_for('update_image') }}" method="POST">
@@ -219,6 +230,7 @@
             <button type="submit" class="btn btn-primary w-100">Update Image</button>
         </form>
     </div>
+    <!-- Admin Add Reward Form -->
     <div class="form-container section-spacing">
         <h2>Add a New Reward</h2>
         <form action="{{ url_for('add_reward') }}" method="POST">
@@ -241,6 +253,7 @@
             <button type="submit" class="btn btn-success w-100">Add Reward</button>
         </form>
     </div>
+    <!-- Admin Add Points Form -->
     <div class="form-container section-spacing">
         <h2>Add Points to a User</h2>
         <form action="{{ url_for('add_points') }}" method="POST">

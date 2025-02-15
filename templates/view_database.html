@@ -1,42 +1,117 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Contents</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .page-title {
+            font-size: 28px;
+            color: #333;
+        }
+        .styled-table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .styled-table th, .styled-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .styled-table th {
+            background-color: #007BFF;
+            color: white;
+        }
+        .styled-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-update {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-update:hover {
+            background-color: #218838;
+        }
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
 
-{% block title %}Database Contents{% endblock %}
-
-{% block content %}
     <h1 class="page-title">Database Contents</h1>
 
     <table class="styled-table">
         <thead>
-        <tr>
-            <th>User ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Points</th>
-            <th>Cart</th>
-            <th>Actions</th>
-        </tr>
+            <tr>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Points</th>
+                <th>Cart</th>
+                <th>Actions</th>
+            </tr>
         </thead>
         <tbody>
-        {% for user in users %}
-            <tr>
-                <td>{{ user['User ID'] }}</td>
-                <td>{{ user['Name'] }}</td>
-                <td>{{ user['Email'] }}</td>
-                <td>{{ user['Role'] }}</td>
-                <td>{{ user['Points'] }}</td>
-                <td>{{ user['Cart'] }}</td>
-                <td class="action-buttons">
-                    <a href="/update_user/{{ user['User ID'] }}" class="btn-link">Update</a>
-                    <form action="/delete_user/{{ user['User ID'] }}" method="POST" style="display: inline;">
-                        <button type="submit" class="btn-delete">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        {% endfor %}
+            {% for user in users | sort(attribute='Role') %}
+                <tr>
+                    <td>{{ user['User ID'] }}</td>
+                    <td>{{ user['Name'] }}</td>
+                    <td>{{ user['Email'] }}</td>
+                    <td>{{ user['Role'] }}</td>
+                    <td>{{ user['Points'] }}</td>
+                    <td>{{ user['Cart'] }}</td>
+                    <td class="action-buttons">
+                        <form action="/update_user/{{ user['User ID'] }}" method="GET">
+                            <button type="submit" class="btn btn-update">Update</button>
+                        </form>
+                        <form action="/delete_user/{{ user['User ID'] }}" method="POST">
+                            <button type="submit" class="btn btn-delete">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
-<a href="/add_user" class="action-button">Add User</a>
 
     <a href="/dashboard" class="back-btn">Back to Dashboard</a>
-{% endblock %}
+
+</body>
+</html>

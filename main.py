@@ -487,28 +487,41 @@ def add_user_page():
 
     return render_template('add_user.html')
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         data = request.form
-        email = data.get('email')
+        email = data.get('email', '').strip()  # Trim spaces to avoid accidental errors
         password = data.get('password')
 
-        with shelve.open(DB_FILE) as db:
+        with shelve.open(DB_FILE, 'c') as db:
             for user_id, user_data in db.items():
-                if user_data['Email'] == email:
-                    if password and check_password_hash(user_data['Password'], password):
+                if user_data.get('Email') == email:
+                    # If password is correct, create session and redirect user
+                    if password and check_password_hash(user_data.get('Password', ''), password):
                         session['user_id'] = user_id
-                        session['role'] = user_data['Role']
-                        return redirect(url_for('dashboard'))
+                        session['role'] = user_data.get('Role')
 
-                    return render_template('login.html', error="Invalid password!")
+                        # Redirect based on user role
+                        if user_data.get('Role') == "admin":
+                            return redirect(url_for('admin_dashboard'))
+                        else:
+                            return redirect(url_for('user_catalog'))  # Redirect to user dashboard
 
-        return render_template('login.html', error="User not found!")
+                    return redirect(url_for('login', error=1))  # Invalid password
 
-    return render_template('login.html')
+        return redirect(url_for('login', error=2))  # User not found
 
+    # Check for login error messages and pass them to the template
+    error_message = request.args.get('error')
+    if error_message == "1":
+        error_message = "Invalid password!"
+    elif error_message == "2":
+        error_message = "User not found!"
+    else:
+        error_message = None
+
+    return render_template('login.html', error=error_message)
 
 # Unified dashboard route
 @app.route('/admin_dashboard', methods=['GET'])
@@ -589,6 +602,257 @@ def update_my_account():
 
     return render_template('update_my_account.html',
                            user=user_data)  # Show the update form
+
+
+
+
+#REWARDS
+
+
+app.route('/enter-user')
+def enter_user():
+    session['admin'] = False
+    return redirect(url_for('view_users'))
+
+
+@app.route('/enter-admin')
+def enter_admin():
+    session['admin'] = True
+    return redirect(url_for('view_rewards'))
+
+@app.route('/users')
+def view_users():
+    print("Rendering /users page.")
+    selected_user_id = request.args.get('user_id', None)
+    with shelve.open("users.db.dat") as users:
+        user_list = [{"user_id": user_id, "points": data["points"]} for user_id, data in users.items()]
+        selected_user = None
+        if selected_user_id:
+            selected_user = next((user for user in user_list if user['user_id'] == selected_user_id), None)
+    with shelve.open("rewards_db") as rewards:
+        reward_list = [
+            {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")}
+            for k, v in rewards.items()
+        ]
+    return render_template('users.html', users=user_list, rewards=reward_list, selected_user=selected_user)
+
+
+@app.route('/rewards')
+def view_rewards():
+    is_admin = session.get('admin', False)
+    print(f"Accessing /rewards. is_admin = {is_admin}")
+
+    with shelve.open("rewards_db") as rewards:
+        reward_list = [
+            {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")}
+            for k, v in rewards.items()
+        ]
+
+    if is_admin:
+        print("Rendering admin rewards page.")
+        return render_template('rewards.html', rewards=reward_list, is_admin=True)
+    else:
+        print("Rendering user rewards page.")
+        return render_template('user.html', rewards=reward_list)
+
+
+@app.route('/add-reward', methods=['POST'])
+def add_reward():
+    if not session.get('admin', False):
+        flash("You must be in Admin mode to add rewards.", "danger")
+        return redirect(url_for('view_rewards'))
+
+    reward_name = request.form.get('reward_name').strip()
+    points_required = int(request.form.get('points_required'))
+    quantity = int(request.form.get('quantity'))
+    image_url = request.form.get('image_url').strip()  # Get image URL from form
+
+    with shelve.open("rewards_db") as rewards:
+        if reward_name in rewards:
+            flash(f"Reward '{reward_name}' already exists. Please choose a different name.", "danger")
+            return redirect(url_for('view_rewards'))
+
+    if reward_name and points_required > 0 and quantity > 0:
+        with shelve.open("rewards_db", writeback=True) as rewards:
+            rewards[reward_name] = {
+                "points": points_required,
+                "quantity": quantity,
+                "image_url": image_url  # Save image URL
+            }
+        flash(f"Added reward: {reward_name}.", "success")
+    else:
+        flash("Invalid input. Ensure all fields are filled with positive values.", "danger")
+
+    return redirect(url_for('view_rewards'))
+
+@app.route('/remove-reward', methods=['POST'])
+def remove_reward():
+    if not session.get('admin', False):
+        flash("You must be in Admin mode to remove rewards.", "danger")
+        return redirect(url_for('view_rewards'))
+
+    reward_name = request.form.get('reward_name').strip()
+    if reward_name:
+        with shelve.open("rewards_db", writeback=True) as rewards:
+            if reward_name in rewards:
+                del rewards[reward_name]
+                flash(f"Reward '{reward_name}' removed successfully.", "success")
+            else:
+                flash(f"Reward '{reward_name}' does not exist.", "danger")
+    else:
+        flash("Invalid reward name.", "danger")
+
+    return redirect(url_for('view_rewards'))
+
+@app.route('/redeem-reward', methods=['POST'])
+def redeem_reward():
+    reward_name = request.form.get('reward_name')
+    user_id = request.form.get('user_id').strip()
+
+    with shelve.open("users.db.dat", writeback=True) as users, shelve.open("rewards_db", writeback=True) as rewards:
+        if user_id not in users:
+            flash(f"User ID '{user_id}' does not exist.", "danger")
+            return redirect(url_for('view_users'))
+
+        if reward_name not in rewards:
+            flash(f"Reward '{reward_name}' does not exist.", "danger")
+            return redirect(url_for('view_users'))
+
+        reward = rewards[reward_name]
+        reward_cost = reward["points"]
+        user_points = users[user_id].get("points", 0)
+
+        if reward["quantity"] <= 0:
+            flash(f"Reward '{reward_name}' is out of stock.", "danger")
+        elif user_points >= reward_cost:
+            users[user_id]["points"] -= reward_cost
+            reward["quantity"] -= 1
+            flash(f"Successfully redeemed '{reward_name}'! Remaining points: {users[user_id]['points']}. "
+                  f"Stock left: {reward['quantity']}", "success")
+        else:
+            flash(f"Not enough points to redeem '{reward_name}'.", "danger")
+
+    return redirect(url_for('view_users', user_id=user_id))
+
+@app.route('/add-points', methods=['POST'])
+def add_points():
+    if not session.get('admin', False):
+        flash("You must be in Admin mode to add points.", "danger")
+        return redirect(url_for('view_rewards'))
+
+    user_id = request.form.get('user_id').strip()
+    points_to_add = int(request.form.get('points'))
+    with shelve.open("users.db.dat", writeback=True) as users:
+        if user_id in users:
+            users[user_id]["points"] += points_to_add
+            flash(f"Added {points_to_add} points to user '{user_id}'.", "success")
+        else:
+            flash(f"User ID '{user_id}' does not exist.", "danger")
+
+    return redirect(url_for('view_rewards'))
+
+@app.route('/update-quantity', methods=['POST'])
+def update_quantity():
+    if not session.get('admin', False):
+        flash("You must be in Admin mode to update reward quantities.", "danger")
+        return redirect(url_for('view_rewards'))
+
+    reward_name = request.form.get('reward_name').strip()
+    new_quantity = int(request.form.get('new_quantity'))
+    if reward_name and new_quantity >= 0:
+        with shelve.open("rewards_db", writeback=True) as rewards:
+            if reward_name in rewards:
+                rewards[reward_name]["quantity"] = new_quantity
+                flash(f"Updated quantity for '{reward_name}' to {new_quantity}.", "success")
+            else:
+                flash(f"Reward '{reward_name}' does not exist.", "danger")
+    else:
+        flash("Invalid input. Ensure the quantity is a non-negative number.", "danger")
+
+    return redirect(url_for('view_rewards'))
+
+@app.route('/update-points', methods=['POST'])
+def update_points():
+    if not session.get('admin', False):
+        flash("You must be in Admin mode to update reward points.", "danger")
+        return redirect(url_for('view_rewards'))
+
+    reward_name = request.form.get('reward_name').strip()
+    new_points = int(request.form.get('new_points'))
+    if reward_name and new_points >= 0:
+        with shelve.open("rewards_db", writeback=True) as rewards:
+            if reward_name in rewards:
+                rewards[reward_name]["points"] = new_points
+                flash(f"Updated points for '{reward_name}' to {new_points}.", "success")
+            else:
+                flash(f"Reward '{reward_name}' does not exist.", "danger")
+    else:
+        flash("Invalid input. Ensure the points are a non-negative number.", "danger")
+
+    return redirect(url_for('view_rewards'))
+
+@app.route('/update-image', methods=['POST'])
+def update_image():
+    if not session.get('admin', False):
+        flash("You must be in Admin mode to update reward images.", "danger")
+        return redirect(url_for('view_rewards'))
+
+    reward_name = request.form.get('reward_name').strip()
+    new_image_url = request.form.get('new_image_url').strip()
+
+    if reward_name:
+        with shelve.open("rewards_db", writeback=True) as rewards:
+            if reward_name in rewards:
+                rewards[reward_name]["image_url"] = new_image_url
+                flash(f"Updated image for reward: {reward_name}.", "success")
+            else:
+                flash(f"Reward '{reward_name}' does not exist.", "danger")
+    else:
+        flash("Invalid reward name.", "danger")
+
+    return redirect(url_for('view_rewards'))
+
+
+@app.route('/process-transaction', methods=['POST'])
+def process_transaction():
+    user_id = request.form.get('user_id')
+    transaction_amount = float(request.form.get('amount'))
+    conversion_rate = 1
+    points_earned = int(transaction_amount * conversion_rate)
+    with shelve.open("users.db.dat", writeback=True) as users:
+        if user_id in users:
+            users[user_id]["points"] += points_earned
+            flash(f"You earned {points_earned} points for your ${transaction_amount} purchase!", "success")
+        else:
+            flash(f"User ID '{user_id}' does not exist.", "danger")
+
+    return redirect(url_for('view_users'))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":

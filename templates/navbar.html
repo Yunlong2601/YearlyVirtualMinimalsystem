@@ -7,15 +7,14 @@
     <ul>
         <li><a href="{{ url_for('home') }}">Home</a></li>
         <li><a href="{{ url_for('user_catalog') }}">Catalog</a></li>
-        <li><a href="#">Rewards</a></li> <!-- Placeholder -->
+        <li><a href="/rewards">Rewards</a></li>
         <li><a href="{{ url_for('profile') }}">Profile</a></li>
 
         {% if session.get('role') == "admin" %}
             <li><a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
             <li><a href="{{ url_for('catalog_admin') }}">Manage Books</a></li>
             <li><a href="{{ url_for('view_database') }}">Manage Users</a></li>
-        <li><a href="#">Rewards Admin
-        </a></li> <!-- Placeholder -->
+        <li><a href="/rewards">Rewards Admin</a></li>
         {% endif %}
 
         <div style="float: right;">
@@ -28,3 +27,4 @@
         </div>
     </ul>
 </nav>
+
