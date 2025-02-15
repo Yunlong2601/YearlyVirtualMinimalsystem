@@ -797,7 +797,7 @@ def redeem_reward():
 
             if not user_id:
                 flash('User not found.', 'danger')
-                return redirect(url_for('view_users'))
+                return redirect(url_for('view_rewards'))
 
             user = users[user_id]
 
@@ -829,7 +829,7 @@ def redeem_reward():
         print(f"An error occurred: {e}")
         flash('An unexpected error occurred. Please try again.', 'danger')
 
-    return redirect(url_for('view_users'))
+    return redirect(url_for('view_rewards'))
 
 @app.route('/add-points', methods=['POST'])
 def add_points():
