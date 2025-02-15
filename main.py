@@ -32,11 +32,21 @@ app.config[
 mail = Mail(app)
 
 
-# Initialize sales data in the shelve database
-def initialize_sales_db():
+# Initialize databases
+def initialize_databases():
+    # Initialize sales database
     with shelve.open(DATABASE, writeback=True) as db:
         if 'sales' not in db:
             db['sales'] = {}  # Key: ISBN, Value: List of sales transactions
+            
+    # Initialize rewards database
+    with shelve.open(REWARDS_DB, writeback=True) as db:
+        if len(db) == 0:
+            db['Sample Reward'] = {
+                "points": 100,
+                "quantity": 10,
+                "image_url": ""
+            }
 
 
 @app.route('/simulate_purchase/<isbn>', methods=['POST'])
@@ -703,6 +713,7 @@ def add_points():
 if __name__ == "__main__":
     if not os.path.exists(STATIC_IMAGES_PATH):
         os.makedirs(STATIC_IMAGES_PATH)
+    initialize_databases()
 
     print("[INFO] Application started successfully!")
     app.run(debug=True)
