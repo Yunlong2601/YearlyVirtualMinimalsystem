@@ -119,6 +119,10 @@
 
             let userId = "{{ user_id }}";  // Assuming user_id is passed to the template
 
+            // Show loading alert or message
+            alert("Your cart is being updated...");
+
+            // Send the update request
             fetch(`/update_cart/${userId}`, {
                 method: "POST",
                 headers: {
@@ -129,12 +133,21 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Notify user of success
                     alert("Cart updated successfully!");
+                    // Optionally, you can also call updateTotal() here to refresh the cart total.
+                    updateTotal();  // This will recalculate the total and update the UI
                 } else {
-                    alert("Error updating cart.");
+                    // Notify user of failure
+                    alert("Error updating cart. Please try again.");
                 }
+            })
+            .catch(error => {
+                // Notify user if there was an issue with the request
+                alert("An error occurred while updating the cart. Please try again.");
             });
         }
+
     </script>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
