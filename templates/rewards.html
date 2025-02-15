@@ -1,141 +1,85 @@
-
+{% extends "base.html" %}
 {% block title %}Rewards{% endblock %}
 {% block content %}
 <style>
-    /* Custom CSS for a cleaner design */
-    .centered-page {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    h1, h2 {
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
-        color: #343a40; /* Dark gray for headings */
-    }
-    .table-container {
-        overflow-x: auto;
-        margin-bottom: 30px;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-    }
-    .table th, .table td {
-        padding: 12px;
-        text-align: center;
-        vertical-align: middle;
-        border: 1px solid #dee2e6; /* Light gray border */
-    }
-    .table thead th {
-        background-color: #343a40; /* Dark gray header */
-        color: white;
-    }
-    .table tbody tr:nth-child(odd) {
-        background-color: #f8f9fa; /* Light gray for odd rows */
-    }
-    .table tbody tr:hover {
-        background-color: #e9ecef; /* Slightly darker gray on hover */
-    }
-    .form-container {
-        background-color: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin-bottom: 30px;
-    }
-    .form-container h2 {
-        margin-bottom: 20px;
-        color: #343a40; /* Dark gray for form headings */
-    }
-    .form-label {
-        font-weight: bold;
-        color: #495057; /* Medium gray for labels */
-    }
-    .form-control {
-        margin-bottom: 15px;
-        border-radius: 5px;
-        border: 1px solid #ced4da; /* Light gray border */
-    }
-    .btn {
-        font-weight: bold;
-        padding: 10px 20px;
-        border-radius: 5px;
-        transition: background-color 0.3s ease;
-    }
-    .btn-warning {
-        background-color: #ffc107; /* Yellow for warning buttons */
-        border-color: #ffc107;
-    }
-    .btn-success {
-        background-color: #28a745; /* Green for success buttons */
-        border-color: #28a745;
-    }
-    .btn-primary {
-        background-color: #007bff; /* Blue for primary buttons */
-        border-color: #007bff;
-    }
-    .btn-danger {
-        background-color: #dc3545; /* Red for danger buttons */
-        border-color: #dc3545;
-    }
-    .btn-info {
-        background-color: #17a2b8; /* Teal for info buttons */
-        border-color: #17a2b8;
-    }
-    .alert {
-        margin-bottom: 20px;
-        border-radius: 5px;
-    }
-    .input-group {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        justify-content: center; /* Center the buttons */
-    }
-    .input-group input {
-        width: 80px; /* Smaller width for quantity input */
-        text-align: center; /* Center the text in the input */
-    }
-    .btn-small {
-        padding: 8px 16px; /* Smaller buttons */
-        font-size: 14px; /* Smaller font size */
-    }
-    /* Add some spacing between sections */
-    .section-spacing {
-        margin-bottom: 40px;
-    }
+.centered-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+h2 {
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+}
+/* Rewards Table Styling */
+.table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+th {
+    background-color: #f4f4f4;
+}
+img {
+    max-width: 50px;
+    height: auto;
+}
+/* Form Styling */
+.form-container {
+    margin-top: 20px;
+}
+.mb-3 {
+    margin-bottom: 15px;
+}
+.form-control {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+}
+.btn {
+    padding: 10px;
+    cursor: pointer;
+}
+.btn-small {
+    padding: 5px 10px;
+}
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+}
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+.btn-warning {
+    background-color: #ffc107;
+    color: black;
+}
 </style>
 <div class="centered-page">
-    <h1 class="mb-4">Available Rewards</h1>
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="mt-3">
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
-    <!-- Rewards Table -->
-    <div class="table-container section-spacing">
-        <table class="table">
-            <thead class="table-dark">
+    <!-- Display Available Rewards -->
+    <h2>Available Rewards</h2>
+    <div class="table-container">
+        <table>
+            <thead>
                 <tr>
                     <th>Reward Name</th>
                     <th>Points Required</th>
                     <th>Quantity</th>
-                    <th>Image</th> <!-- New column for reward images -->
+                    <th>Image</th>
                     {% if is_admin %}
                     <th>Actions</th>
                     {% endif %}
@@ -150,7 +94,7 @@
                     <td>
                         <!-- Display Reward Image -->
                         {% if reward.image_url %}
-                        <img src="{{ reward.image_url }}" alt="{{ reward.name }}" style="width:50px; height:auto;">
+                        <img src="{{ reward.image_url }}" alt="{{ reward.name }}">
                         {% else %}
                         No Image
                         {% endif %}
@@ -189,34 +133,31 @@
         <form action="{{ url_for('redeem_reward') }}" method="POST">
             <div class="mb-3">
                 <label for="reward_name" class="form-label">Select Reward</label>
-                <select class="form-control" id="reward_name" name="reward_name" required>
+                <select class="form-control" id="reward_name" name="reward_name" required aria-label="Select Reward">
                     <option value="" disabled selected>Choose a reward...</option>
                     {% for reward in rewards %}
                     <option value="{{ reward.name }}">
-                        <!-- Display Reward Image -->
-                        {% if reward.image_url %}
-                        <img src="{{ reward.image_url }}" alt="{{ reward.name }}" style="width:50px; height:auto;">
-                        {% endif %}
                         {{ reward.name }} ({{ reward.points }} points)
                     </option>
                     {% endfor %}
                 </select>
             </div>
             <div class="mb-3">
-                <label for="user_id" class="form-label">User ID</label>
-                <input type="text" class="form-control" id="user_id" name="user_id" placeholder="Enter User ID" required>
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required aria-label="Enter Email">
             </div>
             <button type="submit" class="btn btn-warning w-100">Redeem</button>
         </form>
     </div>
+    <!-- Admin-Specific Features -->
     {% if is_admin %}
-    <!-- Admin Update Reward Image Form -->
+    <!-- Update Reward Image Form -->
     <div class="form-container section-spacing">
         <h2>Update Reward Image</h2>
         <form action="{{ url_for('update_image') }}" method="POST">
             <div class="mb-3">
                 <label for="reward_name" class="form-label">Reward Name</label>
-                <select class="form-control" id="reward_name" name="reward_name" required>
+                <select class="form-control" id="reward_name" name="reward_name" required aria-label="Select Reward">
                     <option value="" disabled selected>Choose a reward...</option>
                     {% for reward in rewards %}
                     <option value="{{ reward.name }}">{{ reward.name }}</option>
@@ -225,45 +166,45 @@
             </div>
             <div class="mb-3">
                 <label for="new_image_url" class="form-label">New Image URL</label>
-                <input type="url" class="form-control" id="new_image_url" name="new_image_url" placeholder="Enter new image URL" required>
+                <input type="url" class="form-control" id="new_image_url" name="new_image_url" placeholder="Enter new image URL" required aria-label="Enter New Image URL">
             </div>
             <button type="submit" class="btn btn-primary w-100">Update Image</button>
         </form>
     </div>
-    <!-- Admin Add Reward Form -->
+    <!-- Add a New Reward Form -->
     <div class="form-container section-spacing">
         <h2>Add a New Reward</h2>
         <form action="{{ url_for('add_reward') }}" method="POST">
             <div class="mb-3">
                 <label for="reward_name" class="form-label">Reward Name</label>
-                <input type="text" class="form-control" id="reward_name" name="reward_name" required>
+                <input type="text" class="form-control" id="reward_name" name="reward_name" required aria-label="Enter Reward Name">
             </div>
             <div class="mb-3">
                 <label for="points_required" class="form-label">Points Required</label>
-                <input type="number" class="form-control" id="points_required" name="points_required" required>
+                <input type="number" class="form-control" id="points_required" name="points_required" required aria-label="Enter Points Required">
             </div>
             <div class="mb-3">
                 <label for="quantity" class="form-label">Quantity</label>
-                <input type="number" class="form-control" id="quantity" name="quantity" required>
+                <input type="number" class="form-control" id="quantity" name="quantity" required aria-label="Enter Quantity">
             </div>
             <div class="mb-3">
                 <label for="image_url" class="form-label">Image URL (Optional)</label>
-                <input type="url" class="form-control" id="image_url" name="image_url" placeholder="Enter image URL">
+                <input type="url" class="form-control" id="image_url" name="image_url" placeholder="Enter image URL" aria-label="Enter Image URL">
             </div>
             <button type="submit" class="btn btn-success w-100">Add Reward</button>
         </form>
     </div>
-    <!-- Admin Add Points Form -->
+    <!-- Add Points to a User Form -->
     <div class="form-container section-spacing">
         <h2>Add Points to a User</h2>
         <form action="{{ url_for('add_points') }}" method="POST">
             <div class="mb-3">
-                <label for="user_id" class="form-label">User ID</label>
-                <input type="text" class="form-control" id="user_id" name="user_id" required>
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required aria-label="Enter Email">
             </div>
             <div class="mb-3">
                 <label for="points" class="form-label">Points to Add</label>
-                <input type="number" class="form-control" id="points" name="points" required>
+                <input type="number" class="form-control" id="points" name="points" required aria-label="Enter Points to Add">
             </div>
             <button type="submit" class="btn btn-primary w-100">Add Points</button>
         </form>

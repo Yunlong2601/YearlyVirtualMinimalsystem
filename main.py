@@ -507,28 +507,22 @@ def add_user_page():
 def login():
     if request.method == 'POST':
         data = request.form
-        email = data.get('email', '').strip()  # Trim spaces to avoid accidental errors
+        email = data.get('email', '').strip()
         password = data.get('password')
-
         with shelve.open(DB_FILE, 'c') as db:
             for user_id, user_data in db.items():
                 if user_data.get('Email') == email:
-                    # If password is correct, create session and redirect user
                     if password and check_password_hash(user_data.get('Password', ''), password):
                         session['user_id'] = user_id
                         session['role'] = user_data.get('Role')
-
-                        # Redirect based on user role
+                        session['email'] = user_data.get('Email')  # Store email in session
+                        session['points'] = user_data.get('Points', 0)  # Store points in session
                         if user_data.get('Role') == "admin":
                             return redirect(url_for('admin_dashboard'))
                         else:
                             return redirect(url_for('user_catalog'))  # Redirect to user dashboard
-
                     return redirect(url_for('login', error=1))  # Invalid password
-
         return redirect(url_for('login', error=2))  # User not found
-
-    # Check for login error messages and pass them to the template
     error_message = request.args.get('error')
     if error_message == "1":
         error_message = "Invalid password!"
@@ -536,7 +530,6 @@ def login():
         error_message = "User not found!"
     else:
         error_message = None
-
     return render_template('login.html', error=error_message)
 
 # Unified dashboard route
@@ -739,7 +732,6 @@ def enter_admin():
 
 @app.route('/users')
 def view_users():
-    print("Rendering /users page.")
     selected_user_id = request.args.get('user_id', None)
 
     user_list = []
@@ -757,7 +749,7 @@ def view_users():
             for k, v in rewards.items()
         ]
 
-    return render_template('users.html', users=user_list, rewards=reward_list, selected_user=selected_user)
+    return render_template('rewards.html', users=user_list, rewards=reward_list, selected_user=selected_user)
 
 @app.route('/rewards')
 def view_rewards():
@@ -779,41 +771,52 @@ def view_rewards():
 
 @app.route('/redeem_reward', methods=['POST'])
 def redeem_reward():
-    user_id = request.form.get('user_id')
-    reward_name = request.form.get('reward_name')
-    
-    if user_id == 'Guest':
-        flash('Please log in to redeem rewards', 'danger')
-        return redirect(url_for('view_users'))
-        
-    with shelve.open(REWARDS_DB, flag='c', writeback=True) as rewards:
-        if reward_name not in rewards:
-            flash('Reward not found', 'danger')
-            return redirect(url_for('view_users'))
-            
-        reward = rewards[reward_name]
-        
-        with shelve.open(DB_FILE, flag='c', writeback=True) as users:
-            if user_id not in users:
-                flash('User not found', 'danger')
+    try:
+        user_email = request.form.get('email').strip()
+        reward_name = request.form.get('reward_name')
+
+        with shelve.open(DB_FILE, flag='c') as users:
+            user_id = None
+            for uid, user_data in users.items():
+                if user_data.get('Email') == user_email: 
+                    user_id = uid
+                    break
+
+            if not user_id:
+                flash('User not found.', 'danger')
                 return redirect(url_for('view_users'))
-                
+
             user = users[user_id]
-            
+
+        with shelve.open(REWARDS_DB, flag='c', writeback=True) as rewards:
+            if reward_name not in rewards:
+                flash('Reward not found.', 'danger')
+                return redirect(url_for('view_users'))
+
+            reward = rewards[reward_name]
+
             if user['Points'] < reward['points']:
-                flash('Not enough points', 'danger')
+                flash('Not enough points to redeem this reward.', 'danger')
                 return redirect(url_for('view_users'))
-                
+
             if reward['quantity'] <= 0:
-                flash('Reward out of stock', 'danger')
+                flash('This reward is out of stock.', 'danger')
                 return redirect(url_for('view_users'))
-                
-            # Process redemption
+
             user['Points'] -= reward['points']
             reward['quantity'] -= 1
-            
-            flash(f'Successfully redeemed {reward_name}', 'success')
-            return redirect(url_for('view_users'))
+
+            if 'points' not in session:
+                session['points'] = 0
+            session['points'] = user['Points']
+
+            flash(f'{user_email} successfully redeemed {reward_name}.', 'success')
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        flash('An unexpected error occurred. Please try again.', 'danger')
+
+    return redirect(url_for('view_users'))
 
 @app.route('/add-points', methods=['POST'])
 def add_points():
@@ -838,12 +841,12 @@ def add_points():
 
 
 
-
-
-
-
-
-
+@app.route('/shoppingcart')
+def shoppingcart():
+    """Render the shopping cart page."""
+    cart = session.get('cart', {})
+    total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+    return render_template('shoppingcart.html', cart=cart, total_price=total_price)
 
 
 
