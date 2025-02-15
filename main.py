@@ -803,12 +803,12 @@ def redeem_reward():
                 flash('This reward is out of stock.', 'danger')
                 return redirect(url_for('view_users'))
 
-            user['Points'] -= reward['points']
-            reward['quantity'] -= 1
+            # Update points and save back to database
+            with shelve.open(DB_FILE, writeback=True) as users_db:
+                users_db[user_id]['Points'] -= reward['points']
+                session['points'] = users_db[user_id]['Points']
 
-            if 'points' not in session:
-                session['points'] = 0
-            session['points'] = user['Points']
+            reward['quantity'] -= 1
 
             flash(f'{user_email} successfully redeemed {reward_name}.', 'success')
 
