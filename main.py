@@ -738,7 +738,7 @@ def view_users():
     selected_user = None
 
     with shelve.open(DB_FILE) as users:
-        user_list = [{"user_id": user_id, "points": data["points"]} for user_id, data in users.items()]
+        user_list = [{"user_id": user_id, "points": data.get("Points", 0)} for user_id, data in users.items()]
         if selected_user_id:
             selected_user = next((user for user in user_list if user['user_id'] == selected_user_id), None)
 
