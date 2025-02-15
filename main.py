@@ -842,11 +842,8 @@ def add_points():
 
 
 @app.route('/shoppingcart')
-def shoppingcart():
-    """Render the shopping cart page."""
-    cart = session.get('cart', {})
-    total_price = sum(item['price'] * item['quantity'] for item in cart.values())
-    return render_template('shoppingcart.html', cart=cart, total_price=total_price)
+def shopping_cart():
+    return render_template('shoppingcart.html')
 
 
 
