@@ -829,7 +829,8 @@ def redeem_reward():
         print(f"An error occurred: {e}")
         flash('An unexpected error occurred. Please try again.', 'danger')
 
-    return redirect(url_for('view_users'))
+    # Redirect back to rewards page with user context
+    return redirect(url_for('view_rewards'))
 
 @app.route('/add-points', methods=['POST'])
 def add_points():
