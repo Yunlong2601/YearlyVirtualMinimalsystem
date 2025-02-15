@@ -11,28 +11,23 @@
         .catalogue-container {
             padding: 20px;
         }
-
         .main-content {
             display: flex;
         }
-
         .filters {
             width: 20%;
             padding: 10px;
             border-right: 1px solid #ddd;
         }
-
         .products-container {
             width: 80%;
             padding-left: 20px;
         }
-
         .products {
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
         }
-
         .product-card {
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -43,23 +38,19 @@
             flex-direction: column;
             justify-content: space-between;
         }
-
         .product-card img {
             width: 100%;
             height: 150px;
             object-fit: cover;
         }
-
         .product-title {
             min-height: 40px;
         }
-
         .points-info {
             font-size: 0.9rem;
             color: #007bff;
             margin-top: 5px;
         }
-
         .user-info {
             background-color: #f8f9fa;
             padding: 15px;
@@ -67,6 +58,18 @@
             margin-bottom: 20px;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .admin-controls {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .admin-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -114,27 +117,85 @@
                             <h5 class="product-title">{{ reward.name }}</h5>
                             <div class="points-info">{{ reward.points }} Points</div>
                             <p>Stock: {{ reward.quantity }}</p>
-                            <div class="product-actions">
-                                <form method="POST" action="/redeem">
-                                    <input type="hidden" name="reward" value="{{ reward.name }}">
-                                    <button type="submit" class="btn btn-success btn-sm" {% if user.Points < reward.points %}disabled{% endif %}>
-                                        Redeem Reward
-                                    </button>
-                                </form>
-                            </div>
+                            {% if not is_admin %}
+                                <div class="product-actions">
+                                    <form method="POST" action="/redeem_reward">
+                                        <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                        <input type="hidden" name="email" value="{{ user.Email if user else '' }}">
+                                        <button type="submit" class="btn btn-success btn-sm" {% if user and user.Points < reward.points %}disabled{% endif %}>
+                                            Redeem Reward
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
-    </div>
 
-    {% if is_admin %}
-        <!-- Keep existing admin forms at the bottom -->
-        <div style="margin-top: 40px; padding: 20px;">
+        {% if is_admin %}
+        <div class="admin-controls">
             <h2>Admin Controls</h2>
-            <!-- Your existing admin forms here -->
+            
+            <div class="admin-form">
+                <h4>Add New Reward</h4>
+                <form action="/add_reward" method="POST">
+                    <div class="mb-3">
+                        <input type="text" name="reward_name" class="form-control" placeholder="Reward Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="number" name="points_required" class="form-control" placeholder="Points Required" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="number" name="quantity" class="form-control" placeholder="Quantity" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="image_url" class="form-control" placeholder="Image URL">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Reward</button>
+                </form>
+            </div>
+
+            <div class="admin-form">
+                <h4>Update Existing Rewards</h4>
+                {% for reward in rewards %}
+                    <div class="mb-4">
+                        <h5>{{ reward.name }}</h5>
+                        <div class="row">
+                            <div class="col">
+                                <form action="/update_points" method="POST" class="d-inline-block">
+                                    <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                    <input type="number" name="new_points" class="form-control" placeholder="New Points" required>
+                                    <button type="submit" class="btn btn-warning btn-sm mt-2">Update Points</button>
+                                </form>
+                            </div>
+                            <div class="col">
+                                <form action="/update_quantity" method="POST" class="d-inline-block">
+                                    <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                    <input type="number" name="new_quantity" class="form-control" placeholder="New Quantity" required>
+                                    <button type="submit" class="btn btn-info btn-sm mt-2">Update Quantity</button>
+                                </form>
+                            </div>
+                            <div class="col">
+                                <form action="/update_image" method="POST" class="d-inline-block">
+                                    <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                    <input type="text" name="new_image_url" class="form-control" placeholder="New Image URL" required>
+                                    <button type="submit" class="btn btn-secondary btn-sm mt-2">Update Image</button>
+                                </form>
+                            </div>
+                            <div class="col">
+                                <form action="/remove_reward" method="POST" class="d-inline-block">
+                                    <input type="hidden" name="reward_name" value="{{ reward.name }}">
+                                    <button type="submit" class="btn btn-danger btn-sm mt-2">Remove Reward</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </body>
 </html>
