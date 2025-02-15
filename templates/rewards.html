@@ -196,22 +196,6 @@ img {
             <button>Redeem</button>
         </div>
     {% endfor %}
-
-    <!-- Redeem Rewards Form -->
-    <h2>Redeem Rewards</h2>
-    <form action="/redeem" method="post">
-        <label for="reward-select">Select Reward</label>
-        <select id="reward-select" name="reward">
-            <option value="">Choose a reward...</option>
-            {% for reward in rewards %}
-                <option value="{{ reward.name }}">{{ reward.name }} ({{ reward.points }} points)</option>
-            {% endfor %}
-        </select>
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-        <button type="submit">Redeem</button>
-    </form>
-
     <!-- Admin Actions -->
     {% if is_admin %}
         <h2>Update Reward Image</h2>
