@@ -38,7 +38,7 @@ def initialize_databases():
     with shelve.open(DATABASE, writeback=True) as db:
         if 'sales' not in db:
             db['sales'] = {}  # Key: ISBN, Value: List of sales transactions
-            
+
     # Initialize rewards database
     with shelve.open(REWARDS_DB, flag='c', writeback=True) as db:
         if len(db) == 0:
@@ -609,55 +609,55 @@ def update_my_account():
 def update_image():
     reward_name = request.form.get('reward_name')
     new_image_url = request.form.get('new_image_url')
-    
+
     with shelve.open(REWARDS_DB, writeback=True) as rewards:
         if reward_name in rewards:
             rewards[reward_name]['image_url'] = new_image_url
             flash('Image updated successfully!', 'success')
         else:
             flash('Reward not found!', 'danger')
-    
+
     return redirect(url_for('view_rewards'))
 
 @app.route('/update_quantity', methods=['POST'])
 def update_quantity():
     reward_name = request.form.get('reward_name')
     new_quantity = int(request.form.get('new_quantity'))
-    
+
     with shelve.open(REWARDS_DB, writeback=True) as rewards:
         if reward_name in rewards:
             rewards[reward_name]['quantity'] = new_quantity
             flash('Quantity updated successfully!', 'success')
         else:
             flash('Reward not found!', 'danger')
-    
+
     return redirect(url_for('view_rewards'))
 
 @app.route('/update_points', methods=['POST'])
 def update_points():
     reward_name = request.form.get('reward_name')
     new_points = int(request.form.get('new_points'))
-    
+
     with shelve.open(REWARDS_DB, writeback=True) as rewards:
         if reward_name in rewards:
             rewards[reward_name]['points'] = new_points
             flash('Points updated successfully!', 'success')
         else:
             flash('Reward not found!', 'danger')
-    
+
     return redirect(url_for('view_rewards'))
 
 @app.route('/remove_reward', methods=['POST'])
 def remove_reward():
     reward_name = request.form.get('reward_name')
-    
+
     with shelve.open(REWARDS_DB, writeback=True) as rewards:
         if reward_name in rewards:
             del rewards[reward_name]
             flash('Reward removed successfully!', 'success')
         else:
             flash('Reward not found!', 'danger')
-    
+
     return redirect(url_for('view_rewards'))
 
 @app.route('/add_reward', methods=['POST'])
@@ -666,7 +666,7 @@ def add_reward():
     points_required = int(request.form.get('points_required'))
     quantity = int(request.form.get('quantity'))
     image_url = request.form.get('image_url', '')
-    
+
     with shelve.open(REWARDS_DB, writeback=True) as rewards:
         if reward_name in rewards:
             flash('Reward already exists!', 'danger')
@@ -677,7 +677,7 @@ def add_reward():
                 'image_url': image_url
             }
             flash('Reward added successfully!', 'success')
-    
+
     return redirect(url_for('view_rewards'))
 
     user_id = session.get('user_id')  # Get logged-in user's ID
@@ -819,13 +819,12 @@ def redeem_reward():
             # Update points and save back to database
             with shelve.open(DB_FILE, writeback=True) as users_db:
                 users_db[user_id]['Points'] -= reward['points']
-                # Update session with new user data
                 session['points'] = users_db[user_id]['Points']
-                session['user'] = users_db[user_id]  # Update entire user data in session
+                session['user'] = users_db[user_id]
+                flash(f'{user_email} successfully redeemed {reward_name}.', 'success')
 
             reward['quantity'] -= 1
-
-            flash(f'{user_email} successfully redeemed {reward_name}.', 'success')
+            return redirect(url_for('view_rewards'))
 
     except Exception as e:
         print(f"An error occurred: {e}")
