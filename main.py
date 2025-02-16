@@ -339,7 +339,7 @@ def add_to_cart(isbn):
                 return redirect(url_for('user_catalog'))
 
             cart = user_data.get('Cart', [])
-            
+
             # Check if book already in cart
             book_in_cart = False
             for item in cart:
@@ -768,7 +768,7 @@ def shopping_cart(user_id):
             if not user_data:
                 flash("User not found", "danger")
                 return redirect(url_for('login'))
-            
+
             user_cart = user_data.get('Cart', [])
 
         # Get books data for prices
@@ -873,7 +873,7 @@ def checkout(user_id):
             cart = user_info.get('Cart', [])
 
         # Calculate the total price of items in the cart
-        total_price = 0
+        total_price= 0
         for item in cart:
             if 'price' in item and 'quantity' in item:
                 total_price += item['price'] * item['quantity']
@@ -942,33 +942,37 @@ def payment(user_id):
                     cart = user_data.get('Cart', [])
 
                 # Final stock check before payment
-                for isbn, item in cart.items():
-                    if isbn not in books:
-                        flash(f"Item no longer exists in inventory.", "danger")
-                        return redirect(url_for('shopping_cart', user_id=user_id))
-                    if books[isbn]['stock'] < item['quantity']:
-                        flash(f"Sorry, item is no longer available in the requested quantity.", "danger")
-                        return redirect(url_for('shopping_cart', user_id=user_id))
+                for item in cart:
+                    if 'isbn' in item:  # Only check stock for book items
+                        isbn = item['isbn']
+                        if isbn not in books:
+                            flash(f"Item {item.get('title', '')} no longer exists in inventory.", "danger")
+                            return redirect(url_for('shopping_cart', user_id=user_id))
+                        if books[isbn]['stock'] < item['quantity']:
+                            flash(f"Sorry, {item.get('title', '')} is no longer available in the requested quantity.", "danger")
+                            return redirect(url_for('shopping_cart', user_id=user_id))
 
                 # Deduct stock and record sale
                 sales = books_db.get('sales', {})
-                for isbn, item in cart.items():
-                    # Get current stock and quantity from cart
-                    current_stock = books[isbn]['stock']
-                    quantity_to_deduct = int(item['quantity'])
-                    
-                    # Deduct stock
-                    books[isbn]['stock'] = current_stock - quantity_to_deduct
-                    
-                    # Record sale
-                    if isbn not in sales:
-                        sales[isbn] = []
-                    sales[isbn].append({
-                        "date": pd.Timestamp.now().strftime("%Y-%m-%d"),
-                        "quantity": quantity_to_deduct
-                    })
+                for item in cart:
+                    if 'isbn' in item:  # Process only book items
+                        isbn = item['isbn']
+                        # Get current stock and quantity from cart
+                        current_stock = books[isbn]['stock']
+                        quantity_to_deduct = int(item['quantity'])
 
-                # Save changes
+                        # Deduct stock
+                        books[isbn]['stock'] = current_stock - quantity_to_deduct
+
+                        # Record sale
+                        if isbn not in sales:
+                            sales[isbn] = []
+                        sales[isbn].append({
+                            "date": pd.Timestamp.now().strftime("%Y-%m-%d"),
+                            "quantity": quantity_to_deduct
+                        })
+
+                # Save changes to books and sales
                 books_db['books'] = books
                 books_db['sales'] = sales
 
