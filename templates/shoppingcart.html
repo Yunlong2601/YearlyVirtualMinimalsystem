@@ -139,7 +139,7 @@
                                            value="{{ book['quantity'] }}" 
                                            min="1" required 
                                            data-price="{{ book['price'] }}"
-                                           oninput="updateSubtotal(this)">
+                                           oninput="updateSubtotal(this); autoUpdateCart(this)">
                                 </td>
                                 <td class="subtotal">{{ book['price'] * book['quantity'] }}</td>
                                 <td>
@@ -207,6 +207,33 @@
     </div>
 
     <script>
+        function autoUpdateCart(input) {
+            let cartData = {};
+            document.querySelectorAll('.quantity').forEach(input => {
+                let key = input.name.match(/\[(.*?)\]/)[1];
+                cartData[key] = input.value;
+            });
+
+            let userId = "{{ user_id }}";
+
+            fetch(`/update_cart/${userId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(cartData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error("Error updating cart");
+                }
+            })
+            .catch(error => {
+                console.error("Error updating cart:", error);
+            });
+        }
+
         function updateSubtotal(input) {
             let quantity = input.value;
             let price = input.dataset.price || input.dataset.points;  // Check for 'price' or 'points'
