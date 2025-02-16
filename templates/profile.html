@@ -1,85 +1,126 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            text-align: center;
-            background-color: #f8f9fa;
-        }
+{% extends "base.html" %}
 
-        h1, h2 {
-            color: #333;
-        }
+{% block title %}Profile{% endblock %}
 
+{% block content %}
+
+<style>
+    /* General Page Styling */
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    /* Profile Container */
+    .profile-container {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    h1 {
+        font-size: 26px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+
+    .profile-info p {
+        font-size: 16px;
+        color: #555;
+        margin: 6px 0;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        list-style: none;
+        padding: 0;
+        margin-top: 20px;
+    }
+
+    .action-buttons li {
+        margin-bottom: 10px;
+    }
+
+    .action-button {
+        display: block;
+        padding: 12px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background-color 0.3s, transform 0.2s;
+        text-align: center;
+    }
+
+    .action-button:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+
+    /* Navbar Styling */
+    .navbar {
+        background-color: #000;
+        padding: 15px 30px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .navbar ul li a {
+        color: #fff !important;
+    }
+
+    .navbar ul li a:hover {
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
         .profile-container {
-            max-width: 400px;
-            margin: 0 auto;
+            width: 90%;
             padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #fff;
-            text-align: left;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         }
-
-        p {
-            font-size: 18px;
-            color: #555;
-            margin-bottom: 10px;
+        h1 {
+            font-size: 22px;
         }
-
-        .action-buttons {
-            list-style: none;
-            padding: 0;
-            margin-top: 20px;
-        }
-
-        .action-buttons li {
-            margin-bottom: 10px;
-        }
-
         .action-button {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: background-color 0.3s, transform 0.2s;
+            font-size: 14px;
         }
+    }
+</style>
 
-        .action-button:hover {
-            background-color: #0056b3;
-            transform: scale(1.05);
-        }
 
-        .action-button:active {
-            transform: scale(0.95);
-        }
-    </style>
-</head>
-<body>
+
+<div class="banner">
+    FREE SHIPPING ON ALL BOOKS DEC 25–28.
+</div>
+
 
     <h1>My Profile</h1>
-    <div class="profile-container">
-        <p><strong>Name:</strong> [User Name]</p>
-        <p><strong>Email:</strong> [User Email]</p>
-        <p><strong>Role:</strong> [User Role]</p>
-        <p><strong>Points:</strong> [User Points]</p>
+    <div class="profile-info">
+        <p><strong>Name:</strong> {{ user['Name'] }}</p>
+        <p><strong>Email:</strong> {{ user['Email'] }}</p>
+        <p><strong>Role:</strong> {{ user['Role'] }}</p>
+        <p><strong>Points:</strong> {{ user['Points'] }}</p>
     </div>
 
-    <h2>Actions</h2>
     <ul class="action-buttons">
         <li><a href="/update_my_account" class="action-button">Update My Account</a></li>
         <li><a href="/dashboard" class="action-button">Back to Dashboard</a></li>
         <li><a href="/logout" class="action-button">Logout</a></li>
     </ul>
+</div>
 
-</body>
-</html>
+{% endblock %}

@@ -4,10 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Complete</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: black;
+            color: white;
+            padding: 10px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: #555;
+            text-align: center;
+        }
+
+        /* Style for the "Return to Home" button only */
+        .home-button {
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50; /* Green */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .home-button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
+    {% include "navbar.html" %}
     <h1>Thank you for your order!</h1>
     <p>Your order has been successfully placed.</p>
-    <a href="{{ url_for('home') }}">Return to Home</a>
+    <a href="{{ url_for('home') }}" class="home-button">Return to Home</a>
 </body>
 </html>
+

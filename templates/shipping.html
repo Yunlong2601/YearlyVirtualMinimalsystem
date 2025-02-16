@@ -107,18 +107,20 @@
             </div>
         </label>
 
+        {% for item in shopping_cart %}
         <div class="order-summary">
-            <img src="https://via.placeholder.com/80" alt="Product">
+            <img src="{{ item.image_url }}" alt="{{ item.name }}">
             <div class="summary-details">
-                <strong>Bookmark</strong><br>
-                <span>Design X</span><br>
-                <span>Quantity: 1</span>
+                <strong>{{ item.name }}</strong><br>
+                <span>{{ item.description }}</span><br>
+                <span>Quantity: {{ item.quantity }}</span>
             </div>
             <div>
-                <strong>$30</strong>
+                <strong>${{ item.price * item.quantity }}</strong>
             </div>
-            <a href="#" class="remove">Remove</a>
+            <a href="{{ url_for('remove_from_cart', product_id=item.product_id) }}" class="remove">Remove</a>
         </div>
+        {% endfor %}
 
         <button type="submit" class="btn">Continue to payment</button>
     </form>

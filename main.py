@@ -772,41 +772,35 @@ def shopping_cart(user_id):
 @app.route('/update_cart/<user_id>', methods=['POST'])
 def update_cart(user_id):
     """Update all cart item quantities at once and persist in Shelve."""
-    if 'cart' not in session:
-        session['cart'] = {}
-
-    cart = session['cart']
     data = request.get_json()
 
     try:
-        # Open the cart database (assume cart is stored per user)
         with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
-            user_cart = cart_db.get(user_id, {})  # Get user-specific cart
-            books = cart_db.get('books', {})
+            user_cart = cart_db.get(user_id, {})  # Get user's cart
+
+            # Ensure the cart exists before modifying
+            if not user_cart:
+                return jsonify({"success": False, "error": "Cart not found"}), 400
 
             # Update quantities in the user's cart
             for isbn, new_quantity in data.items():
-                new_quantity = int(new_quantity)
+                try:
+                    new_quantity = int(new_quantity)
+                except ValueError:
+                    continue  # Skip invalid values
 
-                if isbn in books and new_quantity > 0:
-                    user_cart[isbn] = {
-                        'title': books[isbn]['title'],
-                        'price': books[isbn]['price'],
-                        'quantity': new_quantity
-                    }
-                    # Save updated quantity in Shelve DB
-                    books[isbn]['quantity'] = new_quantity
-                elif isbn in user_cart:
-                    del user_cart[isbn]  # Remove book if quantity is 0
-                    if isbn in books:
-                        del books[isbn]  # Update in DB too
+                if isbn in user_cart:
+                    if new_quantity > 0:
+                        user_cart[isbn]['quantity'] = new_quantity  # Update quantity
+                    else:
+                        del user_cart[isbn]  # Remove from cart if 0
 
-            # Save updated cart and books back to the database
+            # Save back to the database
             cart_db[user_id] = user_cart
-            cart_db['books'] = books
 
         session.modified = True
         return jsonify({"success": True})
+
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -814,16 +808,18 @@ def update_cart(user_id):
 @app.route('/remove_from_cart/<isbn>', methods=['POST'])
 def remove_from_cart(isbn):
     """Remove a book from the user's cart."""
-    if 'cart' in session:
-        cart = session['cart']
-        if isbn in cart:
-            cart.pop(isbn)
-            session.modified = True
-            flash(f"Book removed from your cart.", "success")
-        else:
-            flash("Book not found in your cart.", "danger")
+    user_id = session.get('user_id')
+    if user_id:
+        with shelve.open(DATABASE_CARTS, writeback=True) as carts_db:
+            user_cart = carts_db.get(user_id, {})
+            if isbn in user_cart:
+                del user_cart[isbn]
+                carts_db[user_id] = user_cart
+                flash(f"Book removed from your cart.", "success")
+            else:
+                flash("Book not found in your cart.", "danger")
 
-    return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
+    return redirect(url_for('shopping_cart', user_id=user_id))
 
 
 @app.route('/checkout/<user_id>', methods=['GET', 'POST'])
@@ -914,6 +910,10 @@ def payment(user_id):
         return redirect(url_for('shopping_cart', user_id=user_id))
 
 
+@app.route('/complete_order/<user_id>', methods=['GET'])
+def complete_order(user_id):
+    return render_template('CompleteOrder.html', user_id=user_id)
+
 @app.route('/update_points', methods=['POST'])
 def update_points():
     reward_name = request.form.get('reward_name')
@@ -982,9 +982,6 @@ def redeem_reward():
         flash(f'Successfully redeemed {reward_name}!', 'success')
         return redirect(url_for('rewards'))
 
-@app.route('/complete_order/<user_id>', methods=['GET'])
-def complete_order(user_id):
-    return render_template('CompleteOrder.html', user_id=user_id)
 
 
 if __name__ == '__main__':
