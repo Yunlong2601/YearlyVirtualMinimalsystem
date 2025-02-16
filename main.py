@@ -914,23 +914,30 @@ def payment(user_id):
         if request.method == 'POST':
             # Process payment and update stock
             with shelve.open(DATABASE, writeback=True) as books_db:
-                books = books_db.get('books', {})
+                if 'books' not in books_db:
+                    flash("Inventory data is missing.", "danger")
+                    return redirect(url_for('shopping_cart', user_id=user_id))
+
+                books = books_db['books']
+
                 # Check stock availability before processing
                 for isbn, item in cart.items():
-                    if isbn not in books or books[isbn]['stock'] < item['quantity']:
+                    if isbn not in books or books[isbn].get('stock', 0) < item['quantity']:
                         flash(f"Sorry, {item['title']} is no longer available in the requested quantity.", "danger")
                         return redirect(url_for('shopping_cart', user_id=user_id))
 
-                # Update stock levels
+                # Deduct stock
                 for isbn, item in cart.items():
                     books[isbn]['stock'] -= item['quantity']
-                books_db['books'] = books
+
+                books_db['books'] = books  # Save changes
+                books_db.sync()  # Ensure data is written to disk
 
             # Update user points
             with shelve.open(DB_FILE, writeback=True) as users_db:
                 user_info = users_db.get(user_id)
                 if user_info:
-                    user_info['Points'] += int(total_price)
+                    user_info['Points'] = user_info.get('Points', 0) + int(total_price)
                     users_db[user_id] = user_info
 
             # Clear cart after successful purchase
@@ -943,9 +950,8 @@ def payment(user_id):
         return render_template('payment.html', user_id=user_id, user_info=user_info, cart=cart, total_price=total_price)
 
     except Exception as e:
-        flash("An error occurred while processing your payment.", "danger")
+        flash(f"An error occurred: {str(e)}", "danger")
         return redirect(url_for('shopping_cart', user_id=user_id))
-
 
 @app.route('/complete_order/<user_id>', methods=['GET'])
 def complete_order(user_id):
