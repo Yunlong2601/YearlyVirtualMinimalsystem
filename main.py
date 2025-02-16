@@ -901,6 +901,20 @@ def payment(user_id):
         return redirect(url_for('shopping_cart', user_id=user_id))
 
 
+@app.route('/update_points', methods=['POST'])
+def update_points():
+    reward_name = request.form.get('reward_name')
+    new_points = int(request.form.get('new_points'))
+
+    with shelve.open(REWARDS_DB, writeback=True) as rewards:
+        if reward_name in rewards:
+            rewards[reward_name]['points'] = new_points
+            flash('Points updated successfully!', 'success')
+        else:
+            flash('Reward not found!', 'danger')
+
+    return redirect(url_for('rewards'))
+
 @app.route('/redeem_reward', methods=['POST'])
 def redeem_reward():
     if 'user_id' not in session:
