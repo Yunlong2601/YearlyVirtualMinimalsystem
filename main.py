@@ -922,9 +922,9 @@ def update_points():
     with shelve.open(REWARDS_DB, writeback=True) as rewards:
         if reward_name in rewards:
             rewards[reward_name]['points'] = new_points
-            flash('Points updated successfully!', 'success')
+            flash('Points for reward "' + reward_name + '" updated to ' + str(new_points), 'admin-success')
         else:
-            flash('Reward not found!', 'danger')
+            flash('Reward not found!', 'admin-danger')
 
     return redirect(url_for('rewards'))
 
@@ -935,7 +935,7 @@ def remove_reward():
     with shelve.open(REWARDS_DB, writeback=True) as rewards:
         if reward_name in rewards:
             del rewards[reward_name]
-            flash('Reward removed successfully!', 'success')
+            flash('Reward "' + reward_name + '" removed successfully', 'admin-success')
         else:
             flash('Reward not found!', 'danger')
             
@@ -979,7 +979,7 @@ def redeem_reward():
         with shelve.open(REWARDS_DB, writeback=True) as rewards_db:
             rewards_db[reward_name] = reward
             
-        flash(f'Successfully redeemed {reward_name}!', 'success')
+        flash(f'You have successfully redeemed {reward_name}!', 'success')
         return redirect(url_for('rewards'))
 
 

@@ -11,9 +11,15 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
-                    {{ message }}
-                </div>
+                {% if session.get('role') == 'admin' and category.startswith('admin-') %}
+                    <div class="alert alert-{{ category[6:] }}" style="margin: 10px 20px;">
+                        {{ message }}
+                    </div>
+                {% elif not session.get('role') == 'admin' and not category.startswith('admin-') %}
+                    <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
+                        {{ message }}
+                    </div>
+                {% endif %}
             {% endfor %}
         {% endif %}
     {% endwith %}
