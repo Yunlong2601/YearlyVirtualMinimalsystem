@@ -885,6 +885,47 @@ def payment(user_id):
         return redirect(url_for('shopping_cart', user_id=user_id))
 
 
+@app.route('/redeem_reward', methods=['POST'])
+def redeem_reward():
+    if 'user_id' not in session:
+        flash('Please login to redeem rewards', 'danger')
+        return redirect(url_for('login'))
+    
+    email = request.form.get('email')
+    reward_name = request.form.get('reward_name')
+    
+    with shelve.open(REWARDS_DB, writeback=True) as rewards_db:
+        if reward_name not in rewards_db:
+            flash('Reward not found!', 'danger')
+            return redirect(url_for('rewards'))
+            
+        reward = rewards_db[reward_name]
+        if reward['quantity'] <= 0:
+            flash('This reward is out of stock!', 'danger')
+            return redirect(url_for('rewards'))
+            
+    user_id = session['user_id']
+    with shelve.open(DB_FILE, writeback=True) as users_db:
+        user = users_db.get(user_id)
+        if not user:
+            flash('User not found!', 'danger')
+            return redirect(url_for('rewards'))
+            
+        if user['Points'] < reward['points']:
+            flash('Not enough points to redeem this reward!', 'danger')
+            return redirect(url_for('rewards'))
+            
+        # Update user points and reward quantity
+        user['Points'] -= reward['points']
+        reward['quantity'] -= 1
+        
+        users_db[user_id] = user
+        with shelve.open(REWARDS_DB, writeback=True) as rewards_db:
+            rewards_db[reward_name] = reward
+            
+        flash(f'Successfully redeemed {reward_name}!', 'success')
+        return redirect(url_for('rewards'))
+
 @app.route('/complete_order/<user_id>', methods=['GET'])
 def complete_order(user_id):
     return render_template('CompleteOrder.html', user_id=user_id)
