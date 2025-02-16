@@ -872,13 +872,14 @@ def checkout(user_id):
                 return redirect(url_for('login'))
             cart = user_info.get('Cart', [])
 
-        # Calculate the total price of items in the cart
+        # Calculate the total price and points of items in the cart
         total_price = 0
+        total_points = 0
         for item in cart:
             if 'isbn' in item:  # Book items
                 total_price += float(item['price']) * int(item['quantity'])
-            elif 'points' in item:  # Reward items
-                continue  # Skip points-based items in price calculation
+            else:  # Reward items
+                total_points += int(item.get('points', 0)) * int(item['quantity'])
 
         if request.method == 'POST':
             return redirect(url_for('shipping', user_id=user_id))
