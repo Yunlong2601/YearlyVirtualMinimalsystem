@@ -190,15 +190,8 @@
                             <button onclick="location.href='{{ url_for('book_details', isbn=isbn) }}'" class="btn btn-info btn-sm">View Details</button>
 
                             <!-- Add to Cart Form -->
-                            <form id="add-to-cart-form-{{ isbn }}" method="POST" action="{{ url_for('add_to_cart', isbn=isbn) }}" class="d-flex flex-column align-items-center">
-                                <div class="input-group quantity-wrapper mb-2" style="width: 120px;">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="decrementQuantity('{{ isbn }}')">-</button>
-                                    <input type="number" id="quantity-{{ isbn }}" name="quantity" 
-                                           value="1" min="1" max="{{ book.stock }}" 
-                                           class="form-control text-center quantity-input" 
-                                           style="border-radius: 0;">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="incrementQuantity('{{ isbn }}')">+</button>
-                                </div>
+                            <form id="add-to-cart-form-{{ isbn }}" method="POST" action="{{ url_for('add_to_cart', isbn=isbn) }}">
+                                <input type="number" id="quantity-{{ isbn }}" name="quantity" value="1" min="1" max="{{ book.stock }}" class="form-control" style="width: 80px; margin-bottom: 10px;">
                                 <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
                             </form>
                         </div>
@@ -320,46 +313,6 @@
                 }
             });
         });
-    </script>
-    
-    <style>
-        .quantity-wrapper {
-            display: flex;
-            align-items: center;
-        }
-        .quantity-input {
-            text-align: center;
-            border: 1px solid #dee2e6;
-            width: 50px !important;
-            padding: 0.375rem 0.5rem;
-        }
-        .quantity-input::-webkit-inner-spin-button,
-        .quantity-input::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .quantity-input {
-            -moz-appearance: textfield;
-        }
-    </style>
-
-    <script>
-        function incrementQuantity(isbn) {
-            const input = document.getElementById(`quantity-${isbn}`);
-            const max = parseInt(input.max);
-            const currentValue = parseInt(input.value);
-            if (currentValue < max) {
-                input.value = currentValue + 1;
-            }
-        }
-
-        function decrementQuantity(isbn) {
-            const input = document.getElementById(`quantity-${isbn}`);
-            const currentValue = parseInt(input.value);
-            if (currentValue > 1) {
-                input.value = currentValue - 1;
-            }
-        }
     </script>
 </body>
 </html>
