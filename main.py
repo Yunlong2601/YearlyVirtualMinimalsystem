@@ -320,6 +320,9 @@ def add_to_cart(isbn):
         flash("Please login to add items to your cart.", "danger")
         return redirect(url_for('user_catalog'))
 
+    # Get quantity from form
+    quantity = int(request.form.get('quantity', 1))
+
     with shelve.open(DATABASE) as books_db:
         books = books_db.get('books', {})
         if isbn not in books:
@@ -328,8 +331,8 @@ def add_to_cart(isbn):
 
         book = books[isbn]
         # Check if there's enough stock
-        if book['stock'] < 1:
-            flash("Sorry, this item is out of stock.", "danger")
+        if book['stock'] < quantity:
+            flash("Sorry, not enough stock available.", "danger")
             return redirect(url_for('user_catalog'))
 
         with shelve.open(DB_FILE, writeback=True) as users_db:
@@ -344,10 +347,10 @@ def add_to_cart(isbn):
             book_in_cart = False
             for item in cart:
                 if isinstance(item, dict) and item.get('isbn') == isbn:
-                    if item['quantity'] + 1 > book['stock']:
+                    if item['quantity'] + quantity > book['stock']:
                         flash("Sorry, not enough stock available.", "danger")
                         return redirect(url_for('user_catalog'))
-                    item['quantity'] += 1
+                    item['quantity'] += quantity
                     book_in_cart = True
                     break
 
@@ -356,7 +359,7 @@ def add_to_cart(isbn):
                     'isbn': isbn,
                     'title': book['title'],
                     'price': book['price'],
-                    'quantity': 1
+                    'quantity': quantity
                 })
 
             user_data['Cart'] = cart
