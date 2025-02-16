@@ -612,6 +612,23 @@ def update_my_account():
         }
         updates = {key: value for key, value in updates.items() if value}  # Filter empty values
 
+@app.route('/rewards')
+def rewards():
+    user_id = session.get('user_id')
+    user_data = None
+    if user_id:
+        with shelve.open(DB_FILE) as db:
+            user_data = db.get(user_id)
+    
+    with shelve.open(REWARDS_DB) as db:
+        rewards_list = [{
+            "name": reward_name,
+            **reward_data
+        } for reward_name, reward_data in db.items()]
+    
+    return render_template('rewards.html', user=user_data, rewards=rewards_list)
+
+
         if update_user(user_id, updates):
             flash('Account updated successfully!', 'success')
             return redirect(url_for('profile'))  # Redirect to profile page
