@@ -131,8 +131,8 @@
                         <tbody>
                             {% for isbn, book in cart.items() %}
                             <tr>
-                                <td>{{ book['title'] }}</td>
-                                <td class="price">{{ book['price'] }}</td>
+                                <td>{{ book.get('title', '') }}</td>
+                                <td class="price">{{ book.get('price', 0) }}</td>
                                 <td>
                                     <input type="number" class="form-control quantity" 
                                            name="quantities[{{ isbn }}]" 

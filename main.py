@@ -927,8 +927,12 @@ def payment(user_id):
                 books = books_db['books']
 
                 # Get current cart state
-                with shelve.open(DATABASE_CARTS) as carts_db:
-                    cart = carts_db.get(user_id, {})
+                with shelve.open(DB_FILE) as users_db:
+                    user_data = users_db.get(user_id)
+                    if not user_data:
+                        flash("User not found.", "danger")
+                        return redirect(url_for('shopping_cart', user_id=user_id))
+                    cart = user_data.get('Cart', [])
 
                 # Final stock check before payment
                 for isbn, item in cart.items():
