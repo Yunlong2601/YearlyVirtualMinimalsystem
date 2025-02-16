@@ -129,10 +129,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for isbn, book in cart.items() %}
+                            {% for item in cart %}
                             <tr>
-                                <td>{{ book.get('title', '') }}</td>
-                                <td class="price">{{ book.get('price', 0) }}</td>
+                                <td>{{ item.get('title', item.get('name', '')) }}</td>
+                                <td class="price">{{ "%.2f"|format(item.get('price', 0)) if 'price' in item else item.get('points', 0)|string + ' points' }}</td>
                                 <td>
                                     <input type="number" class="form-control quantity" 
                                            name="quantities[{{ isbn }}]" 
