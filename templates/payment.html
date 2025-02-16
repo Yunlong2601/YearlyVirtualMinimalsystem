@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: black;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Payment</h1>
+    <p>Total Amount: <strong>${{ total_price }}</strong></p>
+
+    <form action="{{ url_for('complete_order', user_id=user_id) }}" method="POST">
+        <label for="payment-method">Payment Method</label>
+        <select name="payment_method" required>
+            <option value="credit_card">Credit Card</option>
+            <option value="paypal">PayPal</option>
+        </select>
+
+        <input type="text" name="card_number" placeholder="Card Number" required>
+        <input type="text" name="expiry_date" placeholder="Expiry Date (MM/YY)" required>
+        <input type="text" name="cvv" placeholder="CVV" required>
+
+        <button type="submit" class="btn">Complete Payment</button>
+    </form>
+</div>
+
+</body>
+</html>

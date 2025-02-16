@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
+    
     {% include "navbar.html" %}
     <div class="container mt-5">
         <div class="row">
@@ -46,6 +47,27 @@
                                 </td>
                             </tr>
                             {% endfor %}
+                            {% for reward in rewards %}
+                            <tr>
+                                <td>{{ reward['name'] }}</td>
+                                <td>{{ reward['points'] }} points</td>
+                                <td>
+                                    <input type="number" class="form-control quantity"
+                                           name="quantities[{{ reward['name'] }}]"
+                                           value="{{ reward['quantity'] }}"
+                                           min="1" required
+                                           data-points="{{ reward['points'] }}"
+                                           oninput="updateSubtotal(this)">
+                                </td>
+                                <td class="subtotal">{{ reward['points'] * reward['quantity'] }}</td>
+                                <td>
+                                    <form action="{{ url_for('remove_reward_from_cart', reward_name=reward['name']) }}" method="POST">
+                                        <input type="hidden" name="reward_name" value="{{ reward['name'] }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                     <button type="button" class="btn btn-primary btn-block" onclick="updateCart()">Update Cart</button>
@@ -71,7 +93,10 @@
                                 <span id="cart-total-final" class="badge badge-primary badge-pill">{{ cart_total }}</span>
                             </li>
                         </ul>
-                        <button class="btn btn-success btn-block mt-3">Proceed to Checkout</button>
+                        <form action="{{ url_for('checkout', user_id=user_id) }}" method="GET">
+                            <button type="submit" class="btn btn-success btn-block mt-3">Proceed to Checkout</button>
+                        </form>
+
                     </div>
                 </div>
             </div>
@@ -81,7 +106,7 @@
     <script>
         function updateSubtotal(input) {
             let quantity = input.value;
-            let price = input.dataset.price;
+            let price = input.dataset.price || input.dataset.points;  // Check for 'price' or 'points'
             let subtotalElement = input.closest('tr').querySelector('.subtotal');
 
             // Calculate new subtotal
@@ -106,16 +131,15 @@
         function updateCart() {
             let cartData = {};
             document.querySelectorAll('.quantity').forEach(input => {
-                let isbn = input.name.match(/\d+/)[0]; // Extract ISBN from name
-                cartData[isbn] = input.value;
+                let key = input.name.match(/\[(.*?)\]/)[1]; // Extract key (ISBN or reward name)
+                cartData[key] = input.value;
             });
 
-            let userId = "{{ user_id }}";  // Assuming user_id is passed to the template
+            let userId = "{{ user_id }}";
 
             // Show loading alert or message
             alert("Your cart is being updated...");
 
-            // Send the update request
             fetch(`/update_cart/${userId}`, {
                 method: "POST",
                 headers: {
@@ -128,8 +152,7 @@
                 if (data.success) {
                     // Notify user of success
                     alert("Cart updated successfully!");
-                    // Optionally, you can also call updateTotal() here to refresh the cart total.
-                    updateTotal();  // This will recalculate the total and update the UI
+                    updateTotal(); // Recalculate total after update
                 } else {
                     // Notify user of failure
                     alert("Error updating cart. Please try again.");

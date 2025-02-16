@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        h1 {
+            font-size: 24px;
+        }
+        .steps {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .steps span {
+            font-weight: bold;
+        }
+        .steps span:not(.active) {
+            color: #999;
+        }
+        .shipping-option {
+            border: 2px solid #ccc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .shipping-option input {
+            margin-right: 10px;
+        }
+        .shipping-option.selected {
+            border-color: black;
+        }
+        .order-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .order-summary img {
+            width: 80px;
+            height: 80px;
+            background: #ccc;
+        }
+        .summary-details {
+            flex: 1;
+            margin-left: 15px;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: black;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .remove {
+            font-size: 14px;
+            color: red;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Checkout</h1>
+    <div class="steps">
+        <span>Address</span> — <span class="active">Shipping</span> — <span>Payment</span>
+    </div>
+
+    <form action="{{ url_for('shipping', user_id=user_id) }}" method="POST">
+        <label class="shipping-option">
+            <input type="radio" name="shipping" value="ups_surepost" checked>
+            <div>
+                <strong>UPS/USPS Surepost</strong><br>
+                <span>4-7 Business Days</span>
+            </div>
+        </label>
+        <label class="shipping-option">
+            <input type="radio" name="shipping" value="ups_ground">
+            <div>
+                <strong>UPS Ground Shipping</strong><br>
+                <span>3-5 Business Days</span>
+            </div>
+        </label>
+
+        <div class="order-summary">
+            <img src="https://via.placeholder.com/80" alt="Product">
+            <div class="summary-details">
+                <strong>Bookmark</strong><br>
+                <span>Design X</span><br>
+                <span>Quantity: 1</span>
+            </div>
+            <div>
+                <strong>$30</strong>
+            </div>
+            <a href="#" class="remove">Remove</a>
+        </div>
+
+        <button type="submit" class="btn">Continue to payment</button>
+    </form>
+</div>
+
+</body>
+</html>

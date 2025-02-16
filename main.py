@@ -307,25 +307,35 @@ def filter_books():
 @app.route('/add_to_cart/<isbn>', methods=['POST'])
 def add_to_cart(isbn):
     """Add a book to the temporary cart."""
-    if 'cart' not in session:
-        session['cart'] = {}
+    user_id = session.get('user_id')
+    if user_id:
+        with shelve.open(DB_FILE, writeback=True) as db:
+            user_data = db.get(user_id, None)
+            if user_data:
+                with shelve.open(DATABASE) as db:
+                    books = db.get('books', {})
+                    if isbn in books:
+                        cart = user_data.get('Cart', [])
+                        book_in_cart = next(
+                            (item for item in cart if item['isbn'] == isbn),
+                            None)
 
-    with shelve.open(DATABASE) as db:
-        books = db.get('books', {})
-        if isbn in books:
-            cart = session['cart']
-            cart[isbn] = cart.get(
-                isbn, {
-                    'title': books[isbn]['title'],
-                    'price': books[isbn]['price'],
-                    'quantity': 0
-                })
-            cart[isbn]['quantity'] += 1
-            session.modified = True
-            flash(f"{books[isbn]['title']} added to your cart.", "success")
-        else:
-            flash("Book not found.", "danger")
-
+                        if book_in_cart:
+                            book_in_cart['quantity'] += 1
+                        else:
+                            cart.append({
+                                'isbn': isbn,
+                                'title': books[isbn]['title'],
+                                'price': books[isbn]['price'],
+                                'quantity': 1
+                            })
+                        user_data['Cart'] = cart
+                        db[user_id] = user_data
+                        flash(f"{books[isbn]['title']} added to your cart.", "success")
+                    else:
+                        flash("Book not found.", "danger")
+    else:
+        flash("Please login to add items to your cart.", "danger")
     return redirect(url_for('user_catalog'))
 
 
@@ -633,238 +643,55 @@ def update_quantity():
 
     return redirect(url_for('view_rewards'))
 
-@app.route('/update_points', methods=['POST'])
-def update_points():
-    reward_name = request.form.get('reward_name')
-    new_points = int(request.form.get('new_points'))
-
-    with shelve.open(REWARDS_DB, writeback=True) as rewards:
-        if reward_name in rewards:
-            rewards[reward_name]['points'] = new_points
-            flash('Points updated successfully!', 'success')
-        else:
-            flash('Reward not found!', 'danger')
-
-    return redirect(url_for('view_rewards'))
-
-@app.route('/remove_reward', methods=['POST'])
-def remove_reward():
-    reward_name = request.form.get('reward_name')
-
-    with shelve.open(REWARDS_DB, writeback=True) as rewards:
-        if reward_name in rewards:
-            del rewards[reward_name]
-            flash('Reward removed successfully!', 'success')
-        else:
-            flash('Reward not found!', 'danger')
-
-    return redirect(url_for('view_rewards'))
-
-@app.route('/add_reward', methods=['POST'])
-def add_reward():
-    reward_name = request.form.get('reward_name')
-    points_required = int(request.form.get('points_required'))
-    quantity = int(request.form.get('quantity'))
-    image_url = request.form.get('image_url', '')
-
-    with shelve.open(REWARDS_DB, writeback=True) as rewards:
-        if reward_name in rewards:
-            flash('Reward already exists!', 'danger')
-        else:
-            rewards[reward_name] = {
-                'points': points_required,
-                'quantity': quantity,
-                'image_url': image_url
-            }
-            flash('Reward added successfully!', 'success')
-
-    return redirect(url_for('view_rewards'))
-
-    user_id = session.get('user_id')  # Get logged-in user's ID
-    if not user_id:
-        return redirect(
-            url_for('login'))  # Redirect to "login" if not logged in
-
-    user_data = get_user(user_id)  # Fetch user data from the database
-    if not user_data:
-        return jsonify({'error': 'User not found'}), 404
-
-    if request.method == 'POST':  # Handle form submission
-        data = request.form
-        updates = {
-            'Name':
-            data.get('name'),
-            'Email':
-            data.get('email'),
-            'Password':
-            generate_password_hash(data.get('password'))
-            if data.get('password') else None
-        }
-        updates = {
-            key: value
-            for key, value in updates.items() if value
-        }  # Filter empty values
-
-        if update_user(user_id, updates):
-            flash('Account updated successfully!', 'success')
-            return redirect(url_for('profile'))  # Redirect to profile page
-
-        flash('Failed to update account!', 'danger')
-
-    return render_template('update_my_account.html',
-                           user=user_data)  # Show the update form
-
-
-
-
-#REWARDS
-
-@app.route('/enter-user')
-def enter_user():
-    session.clear()
-    session['role'] = 'user'
-    return redirect(url_for('view_users'))
-
-@app.route('/enter-admin')
-def enter_admin():
-    session.clear()
-    session['role'] = 'admin'
-    return redirect(url_for('view_rewards'))
-
-@app.route('/users')
-def view_users():
-    selected_user_id = request.args.get('user_id', None)
-
-    user_list = []
-    selected_user = None
-
-    with shelve.open(DB_FILE) as users:
-        user_list = [{"user_id": user_id, "points": data.get("Points", 0)} for user_id, data in users.items()]
-        if selected_user_id:
-            selected_user = next((user for user in user_list if user['user_id'] == selected_user_id), None)
-
-    reward_list = []
-    with shelve.open(REWARDS_DB) as rewards:
-        reward_list = [
-            {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")} 
-            for k, v in rewards.items()
-        ]
-
-    return render_template('rewards.html', users=user_list, rewards=reward_list, selected_user=selected_user)
-
-@app.route('/rewards')
+@app.route('/view_rewards', methods=['GET'])
 def view_rewards():
-    is_admin = session.get('role') == 'admin'
-    session.pop('_flashes', None)  # Clear any existing flash messages
-    print(f"Accessing /rewards. is_admin = {is_admin}")
+    with shelve.open(REWARDS_DB) as db:
+        rewards = [{
+            "Reward Name": reward_name,
+            **reward_data
+        } for reward_name, reward_data in db.items()]
+    return render_template('view_rewards.html', rewards=rewards)
 
-    try:
-        with shelve.open(REWARDS_DB, flag='c') as rewards:
-            reward_list = [
-                {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")} 
-                for k, v in rewards.items()
-            ]
-
-        # Get user info if not admin
-        user = None
-        if not is_admin and session.get('user_id'):
-            with shelve.open(DB_FILE) as db:
-                user = db.get(session.get('user_id'))
-
-        if is_admin:
-            print("Rendering admin rewards page.")
-            return render_template('rewards.html', rewards=reward_list, is_admin=True)
-        else:
-            print("Rendering user rewards page.")
-            return render_template('rewards.html', rewards=reward_list, is_admin=False, user=user)
-    except Exception as e:
-        print(f"Error in view_rewards: {e}")
-        flash("An error occurred while loading rewards", "error")
-        return redirect(url_for('home'))
-
-@app.route('/redeem_reward', methods=['POST'])
-def redeem_reward():
-    try:
-        user_email = request.form.get('email').strip()
-        reward_name = request.form.get('reward_name')
-
-        with shelve.open(DB_FILE, flag='c') as users:
-            user_id = None
-            for uid, user_data in users.items():
-                if user_data.get('Email') == user_email: 
-                    user_id = uid
-                    break
-
-            if not user_id:
-                flash('User not found.', 'danger')
-                return redirect(url_for('view_users'))
-
-            user = users[user_id]
-
-        with shelve.open(REWARDS_DB, flag='c', writeback=True) as rewards:
-            if reward_name not in rewards:
-                flash('Reward not found.', 'danger')
-                return redirect(url_for('view_users'))
-
-            reward = rewards[reward_name]
-
-            if user['Points'] < reward['points']:
-                flash('Not enough points to redeem this reward.', 'danger')
-                return redirect(url_for('view_users'))
-
-            if reward['quantity'] <= 0:
-                flash('This reward is out of stock.', 'danger')
-                return redirect(url_for('view_users'))
-
-            # Update points and save back to database
-            with shelve.open(DB_FILE, writeback=True) as users_db:
-                users_db[user_id]['Points'] -= reward['points']
-                session['points'] = users_db[user_id]['Points']
-                session['user'] = users_db[user_id]
-                flash(f'{user_email} successfully redeemed {reward_name}.', 'success')
-
-            reward['quantity'] -= 1
-            return redirect(url_for('view_rewards'))
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        flash('An unexpected error occurred. Please try again.', 'danger')
-
-    return redirect(url_for('view_users'))
-
-@app.route('/add-points', methods=['POST'])
-def add_points():
-    if session.get('role') != 'admin':
-        flash("You must be in Admin mode to add points.", "danger")
-        return redirect(url_for('view_rewards'))
-
-    user_id = request.form.get('user_id').strip()
-    points_to_add = int(request.form.get('points'))
-
-    with shelve.open(DB_FILE, writeback=True) as users:
-        if user_id in users:
-            users[user_id]["points"] += points_to_add
-            flash(f"Added {points_to_add} points to user '{user_id}'.", "success")
-        else:
-            flash(f"User ID '{user_id}' does not exist.", "danger")
-
+@app.route('/remove_reward_from_cart/<reward_name>', methods=['POST'])
+def remove_reward_from_cart(reward_name):
+    user_id = session.get('user_id')
+    if user_id:
+        with shelve.open(DB_FILE, writeback=True) as db:
+            user_data = db.get(user_id, None)
+            if user_data:
+                cart = user_data.get('Cart', [])
+                cart = [item for item in cart if item['name'] != reward_name]
+                user_data['Cart'] = cart
+                db[user_id] = user_data
+                flash(f"{reward_name} removed from your cart.", "success")
+            else:
+                flash("User not found.", "danger")
+    else:
+        flash("Please login to manage your cart.", "danger")
     return redirect(url_for('view_rewards'))
 
-@app.route('/process-transaction', methods=['POST'])
-def process_transaction():
-    user_id = request.form.get('user_id')
-    transaction_amount = float(request.form.get('amount'))
-    conversion_rate = 1
-    points_earned = int(transaction_amount * conversion_rate)
-    with shelve.open("users.db.dat", writeback=True) as users:
-        if user_id in users:
-            users[user_id]["points"] += points_earned
-            flash(f"You earned {points_earned} points for your ${transaction_amount} purchase!", "success")
-        else:
-            flash(f"User ID '{user_id}' does not exist.", "danger")
 
-    return redirect(url_for('view_users'))
-
+@app.route('/update_reward_quantity/<reward_name>', methods=['POST'])
+def update_reward_quantity(reward_name):
+    user_id = session.get('user_id')
+    if user_id:
+        with shelve.open(DB_FILE, writeback=True) as db:
+            user_data = db.get(user_id, None)
+            if user_data:
+                new_quantity = int(request.form.get('new_quantity'))
+                cart = user_data.get('Cart', [])
+                for item in cart:
+                    if item['name'] == reward_name:
+                        item['quantity'] = new_quantity
+                        break
+                user_data['Cart'] = cart
+                db[user_id] = user_data
+                flash(f"Quantity of {reward_name} updated.", "success")
+            else:
+                flash("User not found.", "danger")
+    else:
+        flash("Please login to manage your cart.", "danger")
+    return redirect(url_for('view_rewards'))
 
 
 @app.route('/shoppingcart/<user_id>')
@@ -948,50 +775,85 @@ def remove_from_cart(isbn):
     return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
 
 
-# Function to initialize the cart database
-def initialize_cart_database():
-    with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
-        if 'books' not in cart_db:
-            cart_db['books'] = {}
+@app.route('/checkout/<user_id>', methods=['GET', 'POST'])
+def checkout(user_id):
+    try:
+        # Fetch user data and cart
+        with shelve.open(DB_FILE) as users_db:
+            user_info = users_db.get(user_id)
+        with shelve.open(DATABASE_CARTS) as carts_db:
+            cart = carts_db.get(user_id, {})
+        # Calculate the total price of items in the cart
+        total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+        if request.method == 'POST':
+            # Redirect to shipping page
+            return redirect(url_for('shipping', user_id=user_id))
+        # Render the checkout page with the necessary data
+        return render_template('checkout.html', user_id=user_id, user_info=user_info, cart=cart, total_price=total_price)
+    except Exception as e:
+        return f"Error: {e}", 500
+
+@app.route('/shipping/<user_id>', methods=['GET', 'POST'])
+def shipping(user_id):
+    try:
+        # Fetch user data and cart
+        with shelve.open(DB_FILE) as users_db:
+            user_info = users_db.get(user_id)
+
+        with shelve.open(DATABASE_CARTS) as carts_db:
+            cart = carts_db.get(user_id, {})
+
+        # Calculate total price
+        total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+
+        if request.method == 'POST':
+            return redirect(url_for('payment', user_id=user_id))
+
+        return render_template('shipping.html', user_id=user_id, user_info=user_info, cart=cart, total_price=total_price)
+
+    except Exception as e:
+        return f"Error: {e}", 500
+
+@app.route('/payment/<user_id>', methods=['GET', 'POST'])
+def payment(user_id):
+    try:
+        # Fetch user data and cart
+        with shelve.open(DB_FILE) as users_db:
+            user_info = users_db.get(user_id)
+
+        with shelve.open(DATABASE_CARTS) as carts_db:
+            cart = carts_db.get(user_id, {})
+
+        # Calculate total price
+        total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+
+        if request.method == 'POST':
+            # Handle form submission (e.g., process payment details)
+            # ... (Add your payment details processing logic here) ...
+            # After successful payment, update user's points
+            with shelve.open(DB_FILE, writeback=True) as users_db:
+                user_info = users_db.get(user_id)
+                if user_info:
+                    user_info['Points'] += int(total_price)
+                    users_db[user_id] = user_info
+
+            # Clear cart after purchase
+            with shelve.open(DATABASE_CARTS, writeback=True) as carts_db:
+                carts_db[user_id] = {}
+
+            return redirect(url_for('confirmation', user_id=user_id))
+
+        return render_template('payment.html', user_id=user_id, user_info=user_info, cart=cart, total_price=total_price)
+
+    except Exception as e:
+        return f"Error: {e}", 500
 
 
-@app.route('/update_reward_quantity', methods=['POST'])
-def update_reward_quantity():
-    reward_name = request.form.get('reward_name')
-    new_quantity = int(request.form.get('new_quantity'))
-
-    with shelve.open(REWARDS_DB, writeback=True) as rewards:
-        if reward_name in rewards:
-            rewards[reward_name]['quantity'] = new_quantity
-            flash('Quantity updated successfully!', 'success')
-        else:
-            flash('Reward not found!', 'danger')
-
-    return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
-
-@app.route('/remove_reward_from_cart', methods=['POST'])
-def remove_reward_from_cart():
-    reward_name = request.form.get('reward_name')
-
-    with shelve.open(REWARDS_DB, writeback=True) as rewards:
-        if reward_name in rewards:
-            rewards[reward_name]['quantity'] += 1  # Increment quantity back
-            flash('Reward removed from cart.', 'success')
-        else:
-            flash('Reward not found.', 'danger')
-
-    return redirect(url_for('shopping_cart', user_id=session.get('user_id')))
+@app.route('/complete_order/<user_id>', methods=['GET'])
+def complete_order(user_id):
+    return render_template('CompleteOrder.html', user_id=user_id)
 
 
-
-
-
-
-
-if __name__ == "__main__":
-    if not os.path.exists(STATIC_IMAGES_PATH):
-        os.makedirs(STATIC_IMAGES_PATH)
+if __name__ == '__main__':
     initialize_databases()
-
-    print("[INFO] Application started successfully!")
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
