@@ -846,15 +846,18 @@ def remove_from_cart(isbn):
     """Remove a book from the user's cart."""
     user_id = session.get('user_id')
     if user_id:
-        with shelve.open(DATABASE_CARTS, writeback=True) as carts_db:
-            user_cart = carts_db.get(user_id, {})
-            if isbn in user_cart:
-                del user_cart[isbn]
-                carts_db[user_id] = user_cart
+        with shelve.open(DB_FILE, writeback=True) as users_db:
+            user_data = users_db.get(user_id, None)
+            if user_data:
+                cart = user_data.get('Cart', [])
+                cart = [item for item in cart if item.get('isbn') != isbn]
+                user_data['Cart'] = cart
+                users_db[user_id] = user_data
                 flash(f"Book removed from your cart.", "success")
             else:
-                flash("Book not found in your cart.", "danger")
-
+                flash("User not found.", "danger")
+    else:
+        flash("Please login to manage your cart.", "danger")
     return redirect(url_for('shopping_cart', user_id=user_id))
 
 
