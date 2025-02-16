@@ -637,15 +637,6 @@ def rewards():
     return render_template('rewards.html', user=user_data, rewards=rewards_list)
 
 
-        if update_user(user_id, updates):
-            flash('Account updated successfully!', 'success')
-            return redirect(url_for('profile'))  # Redirect to profile page
-
-        flash('Failed to update account!', 'danger')
-
-    return render_template('update_my_account.html', user=user_data)  # Show the update form
-
-
 @app.route('/update_image', methods=['POST'])
 def update_image():
     reward_name = request.form.get('reward_name')
