@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Bookstore{% endblock %}
+
+{% block content %}
+
+<!-- Announcement Bar -->
+<div class="banner">
+    FREE SHIPPING ON ALL BOOKS DEC 25–28.
+</div>
+
+<!-- Hero Section -->
+<div class="hero">
+    <div class="hero-content">
+        <h1>Welcome to Our Bookstore</h1>
+        <p>Discover a world of books at unbeatable prices.</p>
+        <a href="{{ url_for('user_catalog') }}" class="btn btn-primary">Browse Books</a>
+    </div>
+</div>
+
+<!-- Featured Books Carousel -->
+<div class="catalogue-container">
+    <h2 class="description">Featured Books</h2>
+    <div id="bookCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            {% for isbn, book in books.items() %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                <div class="carousel-content">
+                    <img src="{{ url_for('static', filename='images/' + book.image) }}" alt="{{ book.title }}">
+                    <h5>{{ book.title }}</h5>
+                    <p>$ {{ "{:.2f}".format(book.price) }}</p>
+                    <a href="{{ url_for('book_details', isbn=isbn) }}" class="btn btn-info btn-sm">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#bookCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#bookCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+    </div>
+</div>
+
+<!-- About Section -->
+<div class="about-section">
+    <h2>About Us</h2>
+    <p>We are dedicated to providing a vast selection of books across all genres, from bestsellers to rare finds. Our mission is to make reading accessible and enjoyable for everyone.</p>
+</div>
+
+<style>
+    .hero {
+        background: url("{{ url_for('static', filename='images/bookstore-hero.jpg') }}") center/cover no-repeat;
+        height: 400px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+    .hero-content {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 20px;
+        border-radius: 10px;
+    }
+    .about-section {
+        text-align: center;
+        margin-top: 50px;
+        padding: 30px;
+        background: #f8f9fa;
+    }
+    .carousel-content {
+        text-align: center;
+        padding: 20px;
+    }
+    .carousel-content img {
+        width: 200px;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+</style>
+
+{% endblock %}

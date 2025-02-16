@@ -602,6 +602,11 @@ def admin_dashboard():
 def home():
     return render_template('home.html')
 
+@app.route('/homepage')
+def homepage():
+    with shelve.open(DATABASE) as db:
+        books = db.get('books', {})
+    return render_template('bookstorehomepage.html', books=books)
 
 
 # Route to view the database
@@ -897,23 +902,19 @@ def remove_from_cart(isbn):
     user_id = session.get('user_id')
     if user_id is None:
         flash("Please log in to manage your cart.", "warning")
-        return redirect(url_for('login'))
+        return jsonify({"success": False, "error": "Please log in to manage your cart."}), 400
 
     with shelve.open(DB_FILE, writeback=True) as db:
         user_data = db.get(user_id, {})
         cart = user_data.get('Cart', [])
 
         # Filter out the book with the given ISBN
-        updated_cart = [
-            item for item in cart
-            if not (isinstance(item, dict) and item.get('isbn') == isbn)
-        ]
+        updated_cart = [item for item in cart if not (isinstance(item, dict) and item.get('isbn') == isbn)]
 
         user_data['Cart'] = updated_cart
         db[user_id] = user_data
-        flash("Book removed from cart successfully!", "success")
 
-    return redirect(url_for('shopping_cart', user_id=user_id))
+    return jsonify({"success": True, "message": "Book removed from cart successfully!"})
 
 
 # @app.route('/update_cart/<user_id>', methods=['POST'])

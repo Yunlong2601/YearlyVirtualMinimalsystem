@@ -192,7 +192,15 @@
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 Points Used
-                                <span class="badge badge-primary badge-pill">0</span>
+                                <span class="badge badge-primary badge-pill">
+                                    {% set total_points = 0 %}
+                                    {% for item in cart.values() %}
+                                        {% if 'name' in item %}
+                                            {% set total_points = total_points + (item['points'] * item['quantity']) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ total_points }}
+                                </span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 Reward Points Gained
