@@ -308,34 +308,40 @@ def filter_books():
 def add_to_cart(isbn):
     """Add a book to the temporary cart."""
     user_id = session.get('user_id')
-    if user_id:
-        with shelve.open(DB_FILE, writeback=True) as db:
-            user_data = db.get(user_id, None)
-            if user_data:
-                with shelve.open(DATABASE) as db:
-                    books = db.get('books', {})
-                    if isbn in books:
-                        cart = user_data.get('Cart', [])
-                        book_in_cart = next(
-                            (item for item in cart if item['isbn'] == isbn),
-                            None)
-
-                        if book_in_cart:
-                            book_in_cart['quantity'] += 1
-                        else:
-                            cart.append({
-                                'isbn': isbn,
-                                'title': books[isbn]['title'],
-                                'price': books[isbn]['price'],
-                                'quantity': 1
-                            })
-                        user_data['Cart'] = cart
-                        db[user_id] = user_data
-                        flash(f"{books[isbn]['title']} added to your cart.", "success")
-                    else:
-                        flash("Book not found.", "danger")
-    else:
+    if not user_id:
         flash("Please login to add items to your cart.", "danger")
+        return redirect(url_for('user_catalog'))
+        
+    with shelve.open(DATABASE) as books_db:
+        books = books_db.get('books', {})
+        if isbn not in books:
+            flash("Book not found.", "danger")
+            return redirect(url_for('user_catalog'))
+            
+        book = books[isbn]
+        # Check if there's enough stock
+        if book['stock'] < 1:
+            flash("Sorry, this item is out of stock.", "danger")
+            return redirect(url_for('user_catalog'))
+            
+        with shelve.open(DATABASE_CARTS, writeback=True) as carts_db:
+            user_cart = carts_db.get(user_id, {})
+            
+            if isbn in user_cart:
+                if user_cart[isbn]['quantity'] + 1 > book['stock']:
+                    flash("Sorry, not enough stock available.", "danger")
+                    return redirect(url_for('user_catalog'))
+                user_cart[isbn]['quantity'] += 1
+            else:
+                user_cart[isbn] = {
+                    'title': book['title'],
+                    'price': book['price'],
+                    'quantity': 1
+                }
+                
+            carts_db[user_id] = user_cart
+            flash(f"{book['title']} added to your cart.", "success")
+            
     return redirect(url_for('user_catalog'))
 
 
@@ -828,25 +834,39 @@ def payment(user_id):
         total_price = sum(item['price'] * item['quantity'] for item in cart.values())
 
         if request.method == 'POST':
-            # Handle form submission (e.g., process payment details)
-            # ... (Add your payment details processing logic here) ...
-            # After successful payment, update user's points
+            # Process payment and update stock
+            with shelve.open(DATABASE, writeback=True) as books_db:
+                books = books_db.get('books', {})
+                # Check stock availability before processing
+                for isbn, item in cart.items():
+                    if isbn not in books or books[isbn]['stock'] < item['quantity']:
+                        flash(f"Sorry, {item['title']} is no longer available in the requested quantity.", "danger")
+                        return redirect(url_for('shopping_cart', user_id=user_id))
+                
+                # Update stock levels
+                for isbn, item in cart.items():
+                    books[isbn]['stock'] -= item['quantity']
+                books_db['books'] = books
+
+            # Update user points
             with shelve.open(DB_FILE, writeback=True) as users_db:
                 user_info = users_db.get(user_id)
                 if user_info:
                     user_info['Points'] += int(total_price)
                     users_db[user_id] = user_info
 
-            # Clear cart after purchase
+            # Clear cart after successful purchase
             with shelve.open(DATABASE_CARTS, writeback=True) as carts_db:
                 carts_db[user_id] = {}
 
-            return redirect(url_for('confirmation', user_id=user_id))
+            flash("Payment successful! Your order has been processed.", "success")
+            return redirect(url_for('complete_order', user_id=user_id))
 
         return render_template('payment.html', user_id=user_id, user_info=user_info, cart=cart, total_price=total_price)
 
     except Exception as e:
-        return f"Error: {e}", 500
+        flash("An error occurred while processing your payment.", "danger")
+        return redirect(url_for('shopping_cart', user_id=user_id))
 
 
 @app.route('/complete_order/<user_id>', methods=['GET'])
