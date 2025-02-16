@@ -811,18 +811,20 @@ def update_cart(user_id):
     """Update all cart item quantities at once and persist in Shelve."""
     data = request.get_json()
 
+    if not data:
+        return jsonify({"success": False, "error": "Invalid request data"}), 400
+
     try:
         with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
-            user_cart = cart_db.get(user_id, {})  # Get user's cart
-
-            # Ensure the cart exists before modifying
-            if not user_cart:
+            if user_id not in cart_db:
                 return jsonify({"success": False, "error": "Cart not found"}), 400
 
-            # Update quantities in the user's cart
+            user_cart = cart_db[user_id]  # Get user's cart
+
+            # Update cart item quantities
             for isbn, new_quantity in data.items():
                 try:
-                    new_quantity = int(new_quantity)
+                    new_quantity = int(new_quantity)  # Ensure it's an integer
                 except ValueError:
                     continue  # Skip invalid values
 
@@ -830,16 +832,17 @@ def update_cart(user_id):
                     if new_quantity > 0:
                         user_cart[isbn]['quantity'] = new_quantity  # Update quantity
                     else:
-                        del user_cart[isbn]  # Remove from cart if 0
+                        del user_cart[isbn]  # Remove item if quantity is 0
 
-            # Save back to the database
+            # Save back to Shelve
             cart_db[user_id] = user_cart
+            cart_db.sync()  # Ensure data is written
 
-        session.modified = True
         return jsonify({"success": True})
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 @app.route('/remove_from_cart/<isbn>', methods=['POST'])
 def remove_from_cart(isbn):
