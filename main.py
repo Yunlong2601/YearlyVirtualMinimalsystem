@@ -947,10 +947,10 @@ def redeem_reward():
         flash('Please login to redeem rewards', 'danger')
         return redirect(url_for('login'))
 
-    email = request.form.get('email')
+    user_id = session['user_id']
     reward_name = request.form.get('reward_name')
 
-    with shelve.open(REWARDS_DB, writeback=True) as rewards_db:
+    with shelve.open(REWARDS_DB) as rewards_db:
         if reward_name not in rewards_db:
             flash('Reward not found!', 'danger')
             return redirect(url_for('rewards'))
@@ -960,27 +960,39 @@ def redeem_reward():
             flash('This reward is out of stock!', 'danger')
             return redirect(url_for('rewards'))
 
-    user_id = session['user_id']
-    with shelve.open(DB_FILE, writeback=True) as users_db:
-        user = users_db.get(user_id)
-        if not user:
-            flash('User not found!', 'danger')
+        with shelve.open(DB_FILE) as users_db:
+            user = users_db.get(user_id)
+            if not user:
+                flash('User not found!', 'danger')
+                return redirect(url_for('rewards'))
+
+            if user['Points'] < reward['points']:
+                flash('Not enough points to redeem this reward!', 'danger')
+                return redirect(url_for('rewards'))
+
+            # Add to cart instead of directly redeeming
+            cart = user.get('Cart', [])
+            # Check if reward already in cart
+            reward_in_cart = False
+            for item in cart:
+                if item.get('name') == reward_name:
+                    item['quantity'] += 1
+                    reward_in_cart = True
+                    break
+
+            if not reward_in_cart:
+                cart.append({
+                    'name': reward_name,
+                    'points': reward['points'],
+                    'quantity': 1
+                })
+
+            user['Cart'] = cart
+            with shelve.open(DB_FILE, writeback=True) as db:
+                db[user_id] = user
+
+            flash(f'{reward_name} added to your cart!', 'success')
             return redirect(url_for('rewards'))
-
-        if user['Points'] < reward['points']:
-            flash('Not enough points to redeem this reward!', 'danger')
-            return redirect(url_for('rewards'))
-
-        # Update user points and reward quantity
-        user['Points'] -= reward['points']
-        reward['quantity'] -= 1
-
-        users_db[user_id] = user
-        with shelve.open(REWARDS_DB, writeback=True) as rewards_db:
-            rewards_db[reward_name] = reward
-
-        flash(f'You have successfully redeemed {reward_name}!', 'success')
-        return redirect(url_for('rewards'))
 
 
 
