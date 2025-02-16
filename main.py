@@ -818,28 +818,22 @@ def update_cart(user_id):
         return jsonify({"success": False, "error": "Invalid request data"}), 400
 
     try:
-        with shelve.open(DATABASE_CARTS, writeback=True) as cart_db:
-            if user_id not in cart_db:
-                return jsonify({"success": False, "error": "Cart not found"}), 400
+        with shelve.open(DB_FILE, writeback=True) as users_db:
+            user_data = users_db.get(user_id)
+            if not user_data:
+                return jsonify({"success": False, "error": "User not found"}), 404
 
-            user_cart = cart_db[user_id]  # Get user's cart
+            cart = user_data.get('Cart', [])
+            
+            # Update quantities for each item in cart
+            for item in cart:
+                if 'isbn' in item and item['isbn'] in data:
+                    item['quantity'] = int(data[item['isbn']])
+                elif 'name' in item and item['name'] in data:
+                    item['quantity'] = int(data[item['name']])
 
-            # Update cart item quantities
-            for isbn, new_quantity in data.items():
-                try:
-                    new_quantity = int(new_quantity)  # Ensure it's an integer
-                except ValueError:
-                    continue  # Skip invalid values
-
-                if isbn in user_cart:
-                    if new_quantity > 0:
-                        user_cart[isbn]['quantity'] = new_quantity  # Update quantity
-                    else:
-                        del user_cart[isbn]  # Remove item if quantity is 0
-
-            # Save back to Shelve
-            cart_db[user_id] = user_cart
-            cart_db.sync()  # Ensure data is written
+            user_data['Cart'] = cart
+            users_db[user_id] = user_data
 
         return jsonify({"success": True})
 
