@@ -867,17 +867,24 @@ def checkout(user_id):
         # Fetch user data and cart
         with shelve.open(DB_FILE) as users_db:
             user_info = users_db.get(user_id)
-        with shelve.open(DATABASE_CARTS) as carts_db:
-            cart = carts_db.get(user_id, {})
+            if not user_info:
+                flash("User not found.", "danger")
+                return redirect(url_for('login'))
+            cart = user_info.get('Cart', [])
+
         # Calculate the total price of items in the cart
-        total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+        total_price = 0
+        for item in cart:
+            if 'price' in item and 'quantity' in item:
+                total_price += item['price'] * item['quantity']
+
         if request.method == 'POST':
-            # Redirect to shipping page
             return redirect(url_for('shipping', user_id=user_id))
-        # Render the checkout page with the necessary data
+
         return render_template('checkout.html', user_id=user_id, user_info=user_info, cart=cart, total_price=total_price)
     except Exception as e:
-        return f"Error: {e}", 500
+        flash(f"An error occurred: {str(e)}", "danger")
+        return redirect(url_for('shopping_cart', user_id=user_id))
 
 @app.route('/shipping/<user_id>', methods=['GET', 'POST'])
 def shipping(user_id):
