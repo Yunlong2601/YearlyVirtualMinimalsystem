@@ -332,22 +332,35 @@ def add_to_cart(isbn):
             flash("Sorry, this item is out of stock.", "danger")
             return redirect(url_for('user_catalog'))
 
-        with shelve.open(DATABASE_CARTS, writeback=True) as carts_db:
-            user_cart = carts_db.get(user_id, {})
+        with shelve.open(DB_FILE, writeback=True) as users_db:
+            user_data = users_db.get(user_id)
+            if not user_data:
+                flash("User not found.", "danger")
+                return redirect(url_for('user_catalog'))
 
-            if isbn in user_cart:
-                if user_cart[isbn]['quantity'] + 1 > book['stock']:
-                    flash("Sorry, not enough stock available.", "danger")
-                    return redirect(url_for('user_catalog'))
-                user_cart[isbn]['quantity'] += 1
-            else:
-                user_cart[isbn] = {
+            cart = user_data.get('Cart', [])
+            
+            # Check if book already in cart
+            book_in_cart = False
+            for item in cart:
+                if isinstance(item, dict) and item.get('isbn') == isbn:
+                    if item['quantity'] + 1 > book['stock']:
+                        flash("Sorry, not enough stock available.", "danger")
+                        return redirect(url_for('user_catalog'))
+                    item['quantity'] += 1
+                    book_in_cart = True
+                    break
+
+            if not book_in_cart:
+                cart.append({
+                    'isbn': isbn,
                     'title': book['title'],
                     'price': book['price'],
                     'quantity': 1
-                }
+                })
 
-            carts_db[user_id] = user_cart
+            user_data['Cart'] = cart
+            users_db[user_id] = user_data
             flash(f"{book['title']} added to your cart.", "success")
 
     return redirect(url_for('user_catalog'))
@@ -749,22 +762,46 @@ def update_reward_quantity(reward_name):
 def shopping_cart(user_id):
     """Display the shopping cart page with books and rewards."""
     try:
-        # Fetch the cart and books from the databases
-        with shelve.open(DATABASE_CARTS) as cart_db:
-            user_cart = cart_db.get(user_id, {})  # Retrieve user-specific cart
-            books = cart_db.get('books', {})
+        # Get user data to access cart
+        with shelve.open(DB_FILE) as users_db:
+            user_data = users_db.get(user_id)
+            if not user_data:
+                flash("User not found", "danger")
+                return redirect(url_for('login'))
+            
+            user_cart = user_data.get('Cart', [])
 
-        # Calculate cart total
-        cart_total = sum(user_cart[isbn]['price'] * user_cart[isbn]['quantity'] for isbn in user_cart)
+        # Get books data for prices
+        with shelve.open(DATABASE) as books_db:
+            books = books_db.get('books', {})
 
-        # Retrieve rewards data
-        with shelve.open(REWARDS_DB) as rewards:
-            reward_list = [
-                {"name": k, "points": v["points"], "quantity": v["quantity"], "image_url": v.get("image_url", "")} 
-                for k, v in rewards.items()
-            ]
+        # Calculate cart total (only for books)
+        cart_total = 0
+        rewards = []
 
-        return render_template('shoppingcart.html', user_id=user_id, books=books, cart=user_cart, cart_total=cart_total, reward_list=reward_list)
+        # Separate books and rewards from cart
+        book_cart = {}
+        for item in user_cart:
+            if isinstance(item, dict) and 'points' in item:
+                # This is a reward
+                rewards.append(item)
+            elif isinstance(item, dict) and 'isbn' in item:
+                # This is a book
+                isbn = item['isbn']
+                if isbn in books:
+                    book_cart[isbn] = {
+                        'title': books[isbn]['title'],
+                        'price': books[isbn]['price'],
+                        'quantity': item['quantity']
+                    }
+                    cart_total += books[isbn]['price'] * item['quantity']
+
+        return render_template('shoppingcart.html', 
+                            user_id=user_id, 
+                            books=book_cart, 
+                            cart=book_cart, 
+                            cart_total=cart_total, 
+                            rewards=rewards)
     except Exception as e:
         return f"Error: {e}", 500
 
