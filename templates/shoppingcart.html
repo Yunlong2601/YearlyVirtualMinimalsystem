@@ -129,31 +129,24 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in cart %}
+                            {% for isbn, book in cart.items() %}
                             <tr>
-                                <td>{{ item.title if 'title' in item else item.name }}</td>
-                                <td class="price">{{ "%.2f"|format(item.price) if 'price' in item else item.points|string + ' points' }}</td>
+                                <td>{{ book.get('title', '') }}</td>
+                                <td class="price">{{ book.get('price', 0) }}</td>
                                 <td>
                                     <input type="number" class="form-control quantity" 
-                                           name="quantities[{{ item.isbn if 'isbn' in item else item.name }}]" 
-                                           value="{{ item.quantity }}" 
+                                           name="quantities[{{ isbn }}]" 
+                                           value="{{ book['quantity'] }}" 
                                            min="1" required 
-                                           data-price="{{ item.price if 'price' in item else item.points }}"
+                                           data-price="{{ book['price'] }}"
                                            oninput="updateSubtotal(this); autoUpdateCart(this)">
                                 </td>
-                                <td class="subtotal">{{ item.price * item.quantity if 'price' in item else item.points * item.quantity }}</td>
+                                <td class="subtotal">{{ book['price'] * book['quantity'] }}</td>
                                 <td>
-                                    {% if 'isbn' in item %}
-                                    <form action="{{ url_for('remove_from_cart', isbn=item.isbn) }}" method="POST">
-                                        <input type="hidden" name="isbn" value="{{ item.isbn }}">
+                                    <form action="{{ url_for('remove_from_cart', isbn=isbn) }}" method="POST">
+                                        <input type="hidden" name="isbn" value="{{ isbn }}">
                                         <button type="submit" class="btn btn-danger btn-sm">Remove</button>
                                     </form>
-                                    {% else %}
-                                    <form action="{{ url_for('remove_reward_from_cart', reward_name=item.name) }}" method="POST">
-                                        <input type="hidden" name="reward_name" value="{{ item.name }}">
-                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                                    </form>
-                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -180,6 +173,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    <button type="button" class="btn btn-primary btn-block" onclick="updateCart()">Update Cart</button>
                 </form>
             </div>
             <div class="col-md-4">

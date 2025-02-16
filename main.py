@@ -846,18 +846,15 @@ def remove_from_cart(isbn):
     """Remove a book from the user's cart."""
     user_id = session.get('user_id')
     if user_id:
-        with shelve.open(DB_FILE, writeback=True) as users_db:
-            user_data = users_db.get(user_id, None)
-            if user_data:
-                cart = user_data.get('Cart', [])
-                cart = [item for item in cart if item.get('isbn') != isbn]
-                user_data['Cart'] = cart
-                users_db[user_id] = user_data
+        with shelve.open(DATABASE_CARTS, writeback=True) as carts_db:
+            user_cart = carts_db.get(user_id, {})
+            if isbn in user_cart:
+                del user_cart[isbn]
+                carts_db[user_id] = user_cart
                 flash(f"Book removed from your cart.", "success")
             else:
-                flash("User not found.", "danger")
-    else:
-        flash("Please login to manage your cart.", "danger")
+                flash("Book not found in your cart.", "danger")
+
     return redirect(url_for('shopping_cart', user_id=user_id))
 
 
@@ -872,14 +869,11 @@ def checkout(user_id):
                 return redirect(url_for('login'))
             cart = user_info.get('Cart', [])
 
-        # Calculate the total price and points of items in the cart
-        total_price = 0
-        total_points = 0
+        # Calculate the total price of items in the cart
+        total_price= 0
         for item in cart:
-            if 'isbn' in item:  # Book items
-                total_price += float(item['price']) * int(item['quantity'])
-            else:  # Reward items
-                total_points += int(item.get('points', 0)) * int(item['quantity'])
+            if 'price' in item and 'quantity' in item:
+                total_price += item['price'] * item['quantity']
 
         if request.method == 'POST':
             return redirect(url_for('shipping', user_id=user_id))

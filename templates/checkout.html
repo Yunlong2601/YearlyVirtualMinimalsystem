@@ -172,12 +172,12 @@
                         <input type="text" class="form-control mb-3" name="coupon_code" placeholder="Enter coupon code here">
                         {% for item in cart %}
                         <div class="d-flex justify-content-between mb-2">
-                            {% if 'isbn' in item %}
+                            {% if 'title' in item %}
                                 <span>{{ item['title'] }} (x{{ item['quantity'] }})</span>
-                                <span>${{ "%.2f"|format(item['price'] * item['quantity']) }}</span>
-                            {% else %}
+                                <span>${{ item['price'] * item['quantity'] }}</span>
+                            {% elif 'name' in item %}
                                 <span>{{ item['name'] }} (x{{ item['quantity'] }})</span>
-                                <span>{{ item.get('points', 0) }} points</span>
+                                <span>{{ item['points'] }} points</span>
                             {% endif %}
                         </div>
                         {% endfor %}
