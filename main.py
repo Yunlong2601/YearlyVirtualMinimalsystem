@@ -934,17 +934,19 @@ def payment(user_id):
 
                 # Deduct stock and record sale
                 sales = books_db.get('sales', {})
-                for isbn, item in cart.items():
-                    # Deduct stock
-                    books[isbn]['stock'] -= item['quantity']
-                    
-                    # Record sale
-                    if isbn not in sales:
-                        sales[isbn] = []
-                    sales[isbn].append({
-                        "date": pd.Timestamp.now().strftime("%Y-%m-%d"),
-                        "quantity": item['quantity']
-                    })
+                with shelve.open(DATABASE_CARTS) as carts_db:
+                    cart = carts_db.get(user_id, {})
+                    for isbn, item in cart.items():
+                        # Deduct stock based on cart quantity
+                        books[isbn]['stock'] -= int(item['quantity'])
+                        
+                        # Record sale with correct quantity
+                        if isbn not in sales:
+                            sales[isbn] = []
+                        sales[isbn].append({
+                            "date": pd.Timestamp.now().strftime("%Y-%m-%d"),
+                            "quantity": int(item['quantity'])
+                        })
 
                 # Save changes
                 books_db['books'] = books
