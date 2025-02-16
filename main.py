@@ -149,6 +149,10 @@ def get_db():
 @app.route('/catalog_admin')
 def catalog_admin():
     """Render the catalog page with book data for admin."""
+    if not session.get('user_id') or session.get('role') != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('user_catalog'))
+        
     with shelve.open(DATABASE) as db:
         books = db.get('books', {})
     return render_template('catalogadmin.html', books=books)
@@ -157,6 +161,10 @@ def catalog_admin():
 @app.route('/catalog_user')
 def user_catalog():
     """Render the catalog page for users."""
+    if not session.get('user_id'):
+        flash('Please login to view the catalog.', 'warning')
+        return redirect(url_for('login'))
+        
     with shelve.open(DATABASE) as db:
         books = db.get('books', {})
     return render_template('usercatalog.html', books=books, exclude_part=True)
