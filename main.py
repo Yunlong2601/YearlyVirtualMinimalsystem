@@ -1,12 +1,22 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session
-import shelve
 import os
-import requests
-import pandas as pd
-import openpyxl
-from flask_mail import Mail, Message
+import shelve
 import uuid
-from werkzeug.security import generate_password_hash, check_password_hash
+
+import pandas as pd
+import requests
+from flask import (
+    Flask,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    session,
+    url_for,
+)
+from flask_mail import Mail, Message
+from werkzeug.security import check_password_hash, generate_password_hash
 
 i = 5
 
@@ -516,6 +526,7 @@ def register():
     return render_template('register.html')
 
 
+
 # Route to add a new user
 @app.route('/add_user', methods=['GET', 'POST'])
 def add_user_page():
@@ -544,6 +555,7 @@ def add_user_page():
 
     return render_template('add_user.html')
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -553,16 +565,21 @@ def login():
         with shelve.open(DB_FILE, 'c') as db:
             for user_id, user_data in db.items():
                 if user_data.get('Email') == email:
-                    if password and check_password_hash(user_data.get('Password', ''), password):
+                    if password and check_password_hash(
+                            user_data.get('Password', ''), password):
                         session['user_id'] = user_id
                         session['role'] = user_data.get('Role')
-                        session['email'] = user_data.get('Email')  # Store email in session
-                        session['points'] = user_data.get('Points', 0)  # Store points in session
+                        session['email'] = user_data.get(
+                            'Email')  # Store email in session
+                        session['points'] = user_data.get(
+                            'Points', 0)  # Store points in session
                         if user_data.get('Role') == "admin":
                             return redirect(url_for('admin_dashboard'))
                         else:
-                            return redirect(url_for('user_catalog'))  # Redirect to user dashboard
-                    return redirect(url_for('login', error=1))  # Invalid password
+                            return redirect(url_for(
+                                'user_catalog'))  # Redirect to user dashboard
+                    return redirect(url_for('login',
+                                            error=1))  # Invalid password
         return redirect(url_for('login', error=2))  # User not found
     error_message = request.args.get('error')
     if error_message == "1":
@@ -572,6 +589,7 @@ def login():
     else:
         error_message = None
     return render_template('login.html', error=error_message)
+
 
 # Unified dashboard route
 @app.route('/admin_dashboard', methods=['GET'])
@@ -583,6 +601,7 @@ def admin_dashboard():
 @app.route('/', methods=['GET'])
 def home():
     return render_template('home.html')
+
 
 
 # Route to view the database
@@ -621,7 +640,8 @@ def profile():
 def update_my_account():
     user_id = session.get('user_id')  # Get logged-in user's ID
     if not user_id:
-        return redirect(url_for('login'))  # Redirect to "login" if not logged in
+        return redirect(
+            url_for('login'))  # Redirect to "login" if not logged in
 
     user_data = get_user(user_id)  # Fetch user data from the database
     if not user_data:
@@ -630,11 +650,18 @@ def update_my_account():
     if request.method == 'POST':  # Handle form submission
         data = request.form
         updates = {
-            'Name': data.get('name'),
-            'Email': data.get('email'),
-            'Password': generate_password_hash(data.get('password')) if data.get('password') else None
+            'Name':
+            data.get('name'),
+            'Email':
+            data.get('email'),
+            'Password':
+            generate_password_hash(data.get('password'))
+            if data.get('password') else None
         }
-        updates = {key: value for key, value in updates.items() if value}  # Filter empty values
+        updates = {
+            key: value
+            for key, value in updates.items() if value
+        }  # Filter empty values
 
         if update_user(user_id, updates):
             flash('Account updated successfully!', 'success')
@@ -642,7 +669,9 @@ def update_my_account():
 
         flash('Failed to update account!', 'danger')
 
-    return render_template('update_my_account.html', user=user_data)  # Show the update form
+    return render_template('update_my_account.html',
+                           user=user_data)  # Show the update form
+
 
 @app.route('/rewards')
 def rewards():
@@ -663,7 +692,9 @@ def rewards():
             **reward_data
         } for reward_name, reward_data in db.items()]
 
-    return render_template('rewards.html', user=user_data, rewards=rewards_list)
+    return render_template('rewards.html',
+                           user=user_data,
+                           rewards=rewards_list)
 
 
 @app.route('/add_reward', methods=['POST'])
@@ -682,6 +713,7 @@ def add_reward():
         flash(f'Reward "{reward_name}" added successfully!', 'success')
     return redirect(url_for('rewards'))
 
+
 @app.route('/update_image', methods=['POST'])
 def update_image():
     reward_name = request.form.get('reward_name')
@@ -695,6 +727,7 @@ def update_image():
             flash('Reward not found!', 'danger')
 
     return redirect(url_for('rewards'))
+
 
 @app.route('/update_quantity', methods=['POST'])
 def update_quantity():
@@ -710,6 +743,7 @@ def update_quantity():
 
     return redirect(url_for('rewards'))
 
+
 @app.route('/view_rewards', methods=['GET'])
 def view_rewards():
     with shelve.open(REWARDS_DB) as db:
@@ -718,6 +752,7 @@ def view_rewards():
             **reward_data
         } for reward_name, reward_data in db.items()]
     return render_template('view_rewards.html', rewards=rewards)
+
 
 @app.route('/remove_reward_from_cart/<reward_name>', methods=['POST'])
 def remove_reward_from_cart(reward_name):
@@ -799,33 +834,48 @@ def shopping_cart(user_id):
                     }
                     cart_total += books[isbn]['price'] * item['quantity']
 
-        return render_template('shoppingcart.html', 
-                            user_id=user_id, 
-                            books=book_cart, 
-                            cart=book_cart, 
-                            cart_total=cart_total, 
-                            rewards=rewards)
+        return render_template('shoppingcart.html',
+                               user_id=user_id,
+                               books=book_cart,
+                               cart=book_cart,
+                               cart_total=cart_total,
+                               rewards=rewards)
     except Exception as e:
         return f"Error: {e}", 500
 
 
 @app.route('/update_cart/<user_id>', methods=['POST'])
 def update_cart(user_id):
-    """Update all cart item quantities at once and persist in Shelve."""
-    data = request.get_json()
+    """Update cart item quantities and remove items at once."""
+    data = request.get_json()  # This will parse the incoming JSON data
 
     if not data:
-        return jsonify({"success": False, "error": "Invalid request data"}), 400
+        return jsonify({
+            "success": False,
+            "error": "Invalid request data"
+        }), 400
 
     try:
         with shelve.open(DB_FILE, writeback=True) as users_db:
             user_data = users_db.get(user_id)
             if not user_data:
-                return jsonify({"success": False, "error": "User not found"}), 404
+                return jsonify({
+                    "success": False,
+                    "error": "User not found"
+                }), 404
 
             cart = user_data.get('Cart', [])
-            
-            # Update quantities for each item in cart
+
+            # Remove items if there's any 'remove_books' list in the data
+            remove_books = data.get('remove_books', [])
+            if remove_books:
+                cart = [
+                    item for item in cart
+                    if not (isinstance(item, dict)
+                            and item.get('isbn') in remove_books)
+                ]
+
+            # Update quantities for each item in the cart
             for item in cart:
                 if 'isbn' in item and item['isbn'] in data:
                     item['quantity'] = int(data[item['isbn']])
@@ -845,17 +895,84 @@ def update_cart(user_id):
 def remove_from_cart(isbn):
     """Remove a book from the user's cart."""
     user_id = session.get('user_id')
-    if user_id:
-        with shelve.open(DATABASE_CARTS, writeback=True) as carts_db:
-            user_cart = carts_db.get(user_id, {})
-            if isbn in user_cart:
-                del user_cart[isbn]
-                carts_db[user_id] = user_cart
-                flash(f"Book removed from your cart.", "success")
-            else:
-                flash("Book not found in your cart.", "danger")
+    if user_id is None:
+        flash("Please log in to manage your cart.", "warning")
+        return redirect(url_for('login'))
+
+    with shelve.open(DB_FILE, writeback=True) as db:
+        user_data = db.get(user_id, {})
+        cart = user_data.get('Cart', [])
+
+        # Filter out the book with the given ISBN
+        updated_cart = [
+            item for item in cart
+            if not (isinstance(item, dict) and item.get('isbn') == isbn)
+        ]
+
+        user_data['Cart'] = updated_cart
+        db[user_id] = user_data
+        flash("Book removed from cart successfully!", "success")
 
     return redirect(url_for('shopping_cart', user_id=user_id))
+
+
+# @app.route('/update_cart/<user_id>', methods=['POST'])
+# def update_cart(user_id):
+#     """Update all cart item quantities at once and persist in Shelve."""
+#     data = request.get_json()
+
+#     if not data:
+#         return jsonify({"success": False, "error": "Invalid request data"}), 400
+
+#     try:
+#         with shelve.open(DB_FILE, writeback=True) as users_db:
+#             user_data = users_db.get(user_id)
+#             if not user_data:
+#                 return jsonify({"success": False, "error": "User not found"}), 404
+
+#             cart = user_data.get('Cart', [])
+
+#             # Update quantities for each item in cart
+#             for item in cart:
+#                 if 'isbn' in item and item['isbn'] in data:
+#                     item['quantity'] = int(data[item['isbn']])
+#                 elif 'name' in item and item['name'] in data:
+#                     item['quantity'] = int(data[item['name']])
+
+#             user_data['Cart'] = cart
+#             users_db[user_id] = user_data
+
+#         return jsonify({"success": True})
+
+#     except Exception as e:
+#         return jsonify({"success": False, "error": str(e)}), 500
+
+# @app.route('/remove_from_cart/<isbn>', methods=['POST'])
+# def remove_from_cart(isbn):
+#     """Remove a book from the user's cart."""
+#     user_id = session.get('user_id')
+#     if user_id:
+#         try:
+#             with shelve.open(DB_FILE, writeback=True) as db:
+#                 user_data = db.get(user_id, None)
+#                 if user_data:
+#                     # Retrieve cart from user data
+#                     cart = user_data.get('Cart', [])
+
+#                     # Remove the book from the cart
+#                     cart = [item for item in cart if not (isinstance(item, dict) and item.get('isbn') == isbn)]
+
+#                     user_data['Cart'] = cart
+#                     db[user_id] = user_data
+#                     flash("Book removed from your cart.", "success")
+#                 else:
+#                     flash("User not found.", "danger")
+#         except Exception as e:
+#             flash(f"Error: {e}", "danger")
+#     else:
+#         flash("Please login to manage your cart.", "danger")
+
+#     return redirect(url_for('shopping_cart', user_id=user_id))
 
 
 @app.route('/checkout/<user_id>', methods=['GET', 'POST'])
@@ -870,7 +987,7 @@ def checkout(user_id):
             cart = user_info.get('Cart', [])
 
         # Calculate the total price of items in the cart
-        total_price= 0
+        total_price = 0
         for item in cart:
             if 'price' in item and 'quantity' in item:
                 total_price += item['price'] * item['quantity']
@@ -878,10 +995,15 @@ def checkout(user_id):
         if request.method == 'POST':
             return redirect(url_for('shipping', user_id=user_id))
 
-        return render_template('checkout.html', user_id=user_id, user_info=user_info, cart=cart, total_price=total_price)
+        return render_template('checkout.html',
+                               user_id=user_id,
+                               user_info=user_info,
+                               cart=cart,
+                               total_price=total_price)
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "danger")
         return redirect(url_for('shopping_cart', user_id=user_id))
+
 
 @app.route('/shipping/<user_id>', methods=['GET', 'POST'])
 def shipping(user_id):
@@ -894,15 +1016,21 @@ def shipping(user_id):
             cart = carts_db.get(user_id, {})
 
         # Calculate total price
-        total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+        total_price = sum(item['price'] * item['quantity']
+                          for item in cart.values())
 
         if request.method == 'POST':
             return redirect(url_for('payment', user_id=user_id))
 
-        return render_template('shipping.html', user_id=user_id, user_info=user_info, cart=cart, total_price=total_price)
+        return render_template('shipping.html',
+                               user_id=user_id,
+                               user_info=user_info,
+                               cart=cart,
+                               total_price=total_price)
 
     except Exception as e:
         return f"Error: {e}", 500
+
 
 @app.route('/payment/<user_id>', methods=['GET', 'POST'])
 def payment(user_id):
@@ -910,16 +1038,16 @@ def payment(user_id):
         # Fetch user data and cart
         with shelve.open(DB_FILE) as users_db:
             user_info = users_db.get(user_id)
+            if not user_info:
+                flash("User not found.", "danger")
+                return redirect(url_for('login'))
+            cart = user_info.get('Cart', [])
 
-        with shelve.open(DATABASE_CARTS) as carts_db:
-            cart = carts_db.get(user_id, {})
-
-        if not cart:
-            flash("Your cart is empty.", "warning")
-            return redirect(url_for('user_catalog'))
-
-        # Calculate total price
-        total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+        # Calculate the total price of items in the cart
+        total_price = 0
+        for item in cart:
+            if 'price' in item and 'quantity' in item:
+                total_price += item['price'] * item['quantity']
 
         if request.method == 'POST':
             # Process payment and update stock
@@ -935,7 +1063,8 @@ def payment(user_id):
                     user_data = users_db.get(user_id)
                     if not user_data:
                         flash("User not found.", "danger")
-                        return redirect(url_for('shopping_cart', user_id=user_id))
+                        return redirect(
+                            url_for('shopping_cart', user_id=user_id))
                     cart = user_data.get('Cart', [])
 
                 # Final stock check before payment
@@ -943,11 +1072,17 @@ def payment(user_id):
                     if 'isbn' in item:  # Only check stock for book items
                         isbn = item['isbn']
                         if isbn not in books:
-                            flash(f"Item {item.get('title', '')} no longer exists in inventory.", "danger")
-                            return redirect(url_for('shopping_cart', user_id=user_id))
+                            flash(
+                                f"Item {item.get('title', '')} no longer exists in inventory.",
+                                "danger")
+                            return redirect(
+                                url_for('shopping_cart', user_id=user_id))
                         if books[isbn]['stock'] < item['quantity']:
-                            flash(f"Sorry, {item.get('title', '')} is no longer available in the requested quantity.", "danger")
-                            return redirect(url_for('shopping_cart', user_id=user_id))
+                            flash(
+                                f"Sorry, {item.get('title', '')} is no longer available in the requested quantity.",
+                                "danger")
+                            return redirect(
+                                url_for('shopping_cart', user_id=user_id))
 
                 # Deduct stock and record sale
                 sales = books_db.get('sales', {})
@@ -959,14 +1094,17 @@ def payment(user_id):
                         quantity_to_deduct = int(item['quantity'])
 
                         # Deduct stock
-                        books[isbn]['stock'] = current_stock - quantity_to_deduct
+                        books[isbn][
+                            'stock'] = current_stock - quantity_to_deduct
 
                         # Record sale
                         if isbn not in sales:
                             sales[isbn] = []
                         sales[isbn].append({
-                            "date": pd.Timestamp.now().strftime("%Y-%m-%d"),
-                            "quantity": quantity_to_deduct
+                            "date":
+                            pd.Timestamp.now().strftime("%Y-%m-%d"),
+                            "quantity":
+                            quantity_to_deduct
                         })
 
                 # Save changes to books and sales
@@ -977,23 +1115,31 @@ def payment(user_id):
             with shelve.open(DB_FILE, writeback=True) as users_db:
                 if user_info:
                     # Award points based on purchase total
-                    user_info['Points'] = user_info.get('Points', 0) + int(total_price)
+                    user_info['Points'] = user_info.get('Points',
+                                                        0) + int(total_price)
                     # Clear cart
                     user_info['Cart'] = []
                     users_db[user_id] = user_info
 
-            flash("Payment successful! Your order has been processed.", "success")
+            flash("Payment successful! Your order has been processed.",
+                  "success")
             return redirect(url_for('complete_order', user_id=user_id))
 
-        return render_template('payment.html', user_id=user_id, user_info=user_info, cart=cart, total_price=total_price)
+        return render_template('payment.html',
+                               user_id=user_id,
+                               user_info=user_info,
+                               cart=cart,
+                               total_price=total_price)
 
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "danger")
         return redirect(url_for('shopping_cart', user_id=user_id))
 
+
 @app.route('/complete_order/<user_id>', methods=['GET'])
 def complete_order(user_id):
     return render_template('CompleteOrder.html', user_id=user_id)
+
 
 @app.route('/update_points', methods=['POST'])
 def update_points():
@@ -1003,11 +1149,14 @@ def update_points():
     with shelve.open(REWARDS_DB, writeback=True) as rewards:
         if reward_name in rewards:
             rewards[reward_name]['points'] = new_points
-            flash('Points for reward "' + reward_name + '" updated to ' + str(new_points), 'admin-success')
+            flash(
+                'Points for reward "' + reward_name + '" updated to ' +
+                str(new_points), 'admin-success')
         else:
             flash('Reward not found!', 'admin-danger')
 
     return redirect(url_for('rewards'))
+
 
 @app.route('/remove_reward', methods=['POST'])
 def remove_reward():
@@ -1016,11 +1165,13 @@ def remove_reward():
     with shelve.open(REWARDS_DB, writeback=True) as rewards:
         if reward_name in rewards:
             del rewards[reward_name]
-            flash('Reward "' + reward_name + '" removed successfully', 'admin-success')
+            flash('Reward "' + reward_name + '" removed successfully',
+                  'admin-success')
         else:
             flash('Reward not found!', 'danger')
 
     return redirect(url_for('rewards'))
+
 
 @app.route('/redeem_reward', methods=['POST'])
 def redeem_reward():
@@ -1076,10 +1227,11 @@ def redeem_reward():
             return redirect(url_for('rewards'))
 
 
-
 if __name__ == '__main__':
     initialize_databases()
     app.run(debug=True, host='0.0.0.0')
+
+
 @app.route('/user_rewards')
 def user_rewards():
     user_id = session.get('user_id')
@@ -1094,4 +1246,6 @@ def user_rewards():
             **reward_data
         } for reward_name, reward_data in db.items()]
 
-    return render_template('rewards.html', user=user_data, rewards=rewards_list)
+    return render_template('rewards.html',
+                           user=user_data,
+                           rewards=rewards_list)

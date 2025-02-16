@@ -117,7 +117,7 @@
         <div class="row">
             <div class="col-md-8">
                 <h2>Your Shopping Cart</h2>
-                <form id="cart-form">
+                <form id="cart-form" action="{{ url_for('update_cart', user_id=user_id) }}" method="POST">
                     <table class="table table-striped">
                         <thead>
                             <tr>
@@ -130,7 +130,7 @@
                         </thead>
                         <tbody>
                             {% for isbn, book in cart.items() %}
-                            <tr>
+                            <tr id="cart-item-{{ isbn }}">
                                 <td>{{ book.get('title', '') }}</td>
                                 <td class="price">{{ book.get('price', 0) }}</td>
                                 <td>
@@ -143,38 +143,15 @@
                                 </td>
                                 <td class="subtotal">{{ book['price'] * book['quantity'] }}</td>
                                 <td>
-                                    <form action="{{ url_for('remove_from_cart', isbn=isbn) }}" method="POST">
-                                        <input type="hidden" name="isbn" value="{{ isbn }}">
-                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            {% for reward in rewards %}
-                            <tr>
-                                <td>{{ reward['name'] }}</td>
-                                <td>{{ reward['points'] }} points</td>
-                                <td>
-                                    <input type="number" class="form-control quantity"
-                                           name="quantities[{{ reward['name'] }}]"
-                                           value="{{ reward['quantity'] }}"
-                                           min="1" required
-                                           data-points="{{ reward['points'] }}"
-                                           oninput="updateSubtotal(this)">
-                                </td>
-                                <td class="subtotal">{{ reward['points'] * reward['quantity'] }}</td>
-                                <td>
-                                    <form action="{{ url_for('remove_reward_from_cart', reward_name=reward['name']) }}" method="POST">
-                                        <input type="hidden" name="reward_name" value="{{ reward['name'] }}">
-                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                                    </form>
+                                    <!-- Remove button with AJAX handling -->
+                                    <button type="button" class="btn btn-danger" onclick="removeFromCart('{{ isbn }}')">Remove</button>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                    <button type="button" class="btn btn-primary btn-block" onclick="updateCart()">Update Cart</button>
                 </form>
+
             </div>
             <div class="col-md-4">
                 <div class="card">
@@ -236,7 +213,7 @@
 
         function updateSubtotal(input) {
             let quantity = input.value;
-            let price = input.dataset.price || input.dataset.points;  // Check for 'price' or 'points'
+            let price = input.dataset.price;
             let subtotalElement = input.closest('tr').querySelector('.subtotal');
 
             // Calculate new subtotal
@@ -258,39 +235,25 @@
             document.getElementById('cart-total-final').textContent = total.toFixed(2);
         }
 
-        function updateCart() {
-            let cartData = {};
-            document.querySelectorAll('.quantity').forEach(input => {
-                let key = input.name.match(/\[(.*?)\]/)[1]; // Extract key (ISBN or reward name)
-                cartData[key] = input.value;
-            });
-
-            let userId = "{{ user_id }}";
-
-            // Show loading alert or message
-            alert("Your cart is being updated...");
-
-            fetch(`/update_cart/${userId}`, {
-                method: "POST",
+        function removeFromCart(isbn) {
+            fetch(`/remove_from_cart/${isbn}`, {
+                method: 'POST',
                 headers: {
-                    "Content-Type": "application/json"
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(cartData)
-            })
-            .then(response => response.json())
-            .then(data => {
+                body: JSON.stringify({ isbn: isbn })
+            }).then(response => {
+                return response.json();
+            }).then(data => {
                 if (data.success) {
-                    // Notify user of success
-                    alert("Cart updated successfully!");
-                    updateTotal(); // Recalculate total after update
+                    // Remove the item row from the table
+                    document.getElementById(`cart-item-${isbn}`).remove();
+                    updateTotal();  // Recalculate total after removal
                 } else {
-                    // Notify user of failure
-                    alert("Error updating cart. Please try again.");
+                    alert('Error removing item');
                 }
-            })
-            .catch(error => {
-                // Notify user if there was an issue with the request
-                alert("An error occurred while updating the cart. Please try again.");
+            }).catch(error => {
+                console.error('Error:', error);
             });
         }
     </script>

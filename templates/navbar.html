@@ -1,11 +1,28 @@
 <!-- templates/navbar.html -->
 <head>
      <link rel="stylesheet" href="static/styles.css">
+<style>    
+    .navbar {
+    background-color: black;
+    color: white;
+    padding: 10px;
+}
+
+.navbar a {
+    color: white !important;
+    text-decoration: none;
+    margin-right: 15px;
+}
+
+.navbar a:hover {
+    color: #f8f9fa !important;
+    text-decoration: underline;
+}</style>
 </head>
 
 <nav class="navbar">
     <ul>
-        <li><a href="{{ url_for('home') }}">Home</a></li>
+        <li><a href="{{ url_for('/') }}">Home</a></li>
         <li><a href="{{ url_for('user_catalog') }}">Catalog</a></li>
         <li><a href="/rewards">Rewards</a></li>
         <li><a href="{{ url_for('profile') }}">Profile</a></li>

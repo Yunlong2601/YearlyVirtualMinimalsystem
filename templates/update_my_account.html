@@ -3,20 +3,76 @@
 {% block title %}Update My Account{% endblock %}
 
 {% block content %}
-    <h1>Update My Account</h1>
-    <form method="POST">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" value="{{ user['Name'] }}" required><br><br>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" value="{{ user['Email'] }}" required><br><br>
+<!-- Announcement Bar -->
+<div class="banner">
+    FREE SHIPPING ON ALL BOOKS DEC 25–28.
+</div>
 
-        <label for="password">New Password (optional):</label>
-        <input type="password" id="password" name="password"><br><br>
+<!-- Update Account Section -->
+<div class="catalogue-container">
+    <h2 class="description">Update My Account</h2>
+    <p class="description">Modify your account details </p>
 
-        <!-- Add a button with class-->
-        <button type="submit" class="btn-primary">Save Changes</button>
-    </form>
+    <div class="container user-info">
+        <form method="POST" class="form-container">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" value="{{ user['Name'] }}" class="form-control" required>
+            </div>
 
-    <a href="/profile" class="cancel-link">Cancel</a>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="{{ user['Email'] }}" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">New Password (optional):</label>
+                <input type="password" id="password" name="password" class="form-control">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary cancel-link" onclick="window.location.href='/profile'">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #333;
+    }
+    .form-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+</style>
+
 {% endblock %}
