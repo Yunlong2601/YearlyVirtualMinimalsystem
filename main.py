@@ -915,6 +915,19 @@ def update_points():
 
     return redirect(url_for('rewards'))
 
+@app.route('/remove_reward', methods=['POST'])
+def remove_reward():
+    reward_name = request.form.get('reward_name')
+    
+    with shelve.open(REWARDS_DB, writeback=True) as rewards:
+        if reward_name in rewards:
+            del rewards[reward_name]
+            flash('Reward removed successfully!', 'success')
+        else:
+            flash('Reward not found!', 'danger')
+            
+    return redirect(url_for('view_rewards'))
+
 @app.route('/redeem_reward', methods=['POST'])
 def redeem_reward():
     if 'user_id' not in session:
