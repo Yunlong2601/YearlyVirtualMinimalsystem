@@ -841,7 +841,6 @@ def update_cart(user_id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
 @app.route('/remove_from_cart/<isbn>', methods=['POST'])
 def remove_from_cart(isbn):
     """Remove a book from the user's cart."""
