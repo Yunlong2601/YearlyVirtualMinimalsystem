@@ -953,14 +953,6 @@ def payment(user_id):
                         "date": pd.Timestamp.now().strftime("%Y-%m-%d"),
                         "quantity": quantity_to_deduct
                     })
-                        
-                        # Record sale with correct quantity
-                        if isbn not in sales:
-                            sales[isbn] = []
-                        sales[isbn].append({
-                            "date": pd.Timestamp.now().strftime("%Y-%m-%d"),
-                            "quantity": int(item['quantity'])
-                        })
 
                 # Save changes
                 books_db['books'] = books
