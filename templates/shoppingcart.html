@@ -134,12 +134,15 @@
                                 <td>{{ book.get('title', '') }}</td>
                                 <td class="price">{{ book.get('price', 0) }}</td>
                                 <td>
-                                    <input type="number" class="form-control quantity" 
-                                           name="quantities[{{ isbn }}]" 
-                                           value="{{ book['quantity'] }}" 
-                                           min="1" required 
-                                           data-price="{{ book['price'] }}"
-                                           oninput="updateSubtotal(this); autoUpdateCart(this)">
+                                    <div class="d-flex justify-content-center">
+                                        <input type="number" class="form-control quantity text-center" 
+                                               style="width: 80px;"
+                                               name="quantities[{{ isbn }}]" 
+                                               value="{{ book['quantity'] }}" 
+                                               min="1" required 
+                                               data-price="{{ book['price'] }}"
+                                               oninput="updateSubtotal(this); autoUpdateCart(this)">
+                                    </div>
                                 </td>
                                 <td class="subtotal">{{ book['price'] * book['quantity'] }}</td>
                                 <td>
@@ -155,12 +158,15 @@
                                 <td>{{ reward['name'] }}</td>
                                 <td>{{ reward['points'] }} points</td>
                                 <td>
-                                    <input type="number" class="form-control quantity"
-                                           name="quantities[{{ reward['name'] }}]"
-                                           value="{{ reward['quantity'] }}"
-                                           min="1" required
-                                           data-points="{{ reward['points'] }}"
-                                           oninput="updateSubtotal(this)">
+                                    <div class="d-flex justify-content-center">
+                                        <input type="number" class="form-control quantity text-center"
+                                               style="width: 80px;"
+                                               name="quantities[{{ reward['name'] }}]"
+                                               value="{{ reward['quantity'] }}"
+                                               min="1" required
+                                               data-points="{{ reward['points'] }}"
+                                               oninput="updateSubtotal(this)">
+                                    </div>
                                 </td>
                                 <td class="subtotal">{{ reward['points'] * reward['quantity'] }}</td>
                                 <td>
