@@ -611,6 +611,14 @@ def update_my_account():
             'Password': generate_password_hash(data.get('password')) if data.get('password') else None
         }
         updates = {key: value for key, value in updates.items() if value}  # Filter empty values
+        
+        if update_user(user_id, updates):
+            flash('Account updated successfully!', 'success')
+            return redirect(url_for('profile'))  # Redirect to profile page
+
+        flash('Failed to update account!', 'danger')
+
+    return render_template('update_my_account.html', user=user_data)  # Show the update form
 
 @app.route('/rewards')
 def rewards():
