@@ -923,22 +923,36 @@ def payment(user_id):
 
                 books = books_db['books']
 
+                # Get current cart state
+                with shelve.open(DATABASE_CARTS) as carts_db:
+                    cart = carts_db.get(user_id, {})
+
                 # Final stock check before payment
                 for isbn, item in cart.items():
                     if isbn not in books:
                         flash(f"Item no longer exists in inventory.", "danger")
                         return redirect(url_for('shopping_cart', user_id=user_id))
                     if books[isbn]['stock'] < item['quantity']:
-                        flash(f"Sorry, {item['title']} is no longer available in the requested quantity.", "danger")
+                        flash(f"Sorry, item is no longer available in the requested quantity.", "danger")
                         return redirect(url_for('shopping_cart', user_id=user_id))
 
                 # Deduct stock and record sale
                 sales = books_db.get('sales', {})
-                with shelve.open(DATABASE_CARTS) as carts_db:
-                    cart = carts_db.get(user_id, {})
-                    for isbn, item in cart.items():
-                        # Deduct stock based on cart quantity
-                        books[isbn]['stock'] -= int(item['quantity'])
+                for isbn, item in cart.items():
+                    # Get current stock and quantity from cart
+                    current_stock = books[isbn]['stock']
+                    quantity_to_deduct = int(item['quantity'])
+                    
+                    # Deduct stock
+                    books[isbn]['stock'] = current_stock - quantity_to_deduct
+                    
+                    # Record sale
+                    if isbn not in sales:
+                        sales[isbn] = []
+                    sales[isbn].append({
+                        "date": pd.Timestamp.now().strftime("%Y-%m-%d"),
+                        "quantity": quantity_to_deduct
+                    })
                         
                         # Record sale with correct quantity
                         if isbn not in sales:
