@@ -631,10 +631,15 @@ def update_my_account():
 @app.route('/rewards')
 def rewards():
     user_id = session.get('user_id')
+    user_role = session.get('role')
     user_data = None
     if user_id:
         with shelve.open(DB_FILE) as db:
             user_data = db.get(user_id)
+            
+    # If not logged in or not admin, redirect to user rewards view
+    if not user_id or (user_role != 'admin' and request.path == '/rewards'):
+        return redirect(url_for('user_rewards'))
     
     with shelve.open(REWARDS_DB) as db:
         rewards_list = [{
@@ -985,3 +990,18 @@ def complete_order(user_id):
 if __name__ == '__main__':
     initialize_databases()
     app.run(debug=True, host='0.0.0.0')
+@app.route('/user_rewards')
+def user_rewards():
+    user_id = session.get('user_id')
+    user_data = None
+    if user_id:
+        with shelve.open(DB_FILE) as db:
+            user_data = db.get(user_id)
+    
+    with shelve.open(REWARDS_DB) as db:
+        rewards_list = [{
+            "name": reward_name,
+            **reward_data
+        } for reward_name, reward_data in db.items()]
+    
+    return render_template('rewards.html', user=user_data, rewards=rewards_list)
