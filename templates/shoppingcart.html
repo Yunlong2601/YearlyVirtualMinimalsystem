@@ -111,7 +111,24 @@
     </style>
 </head>
 <body>
-    
+    <!-- Flash Messages Section -->
+    <div class="centered-page">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if session.get('role') == 'admin' and category.startswith('admin-') %}
+                        <div class="alert alert-{{ category[6:] }}" style="margin: 10px 20px;">
+                            {{ message }}
+                        </div>
+                    {% elif not session.get('role') == 'admin' and not category.startswith('admin-') %}
+                        <div class="alert alert-{{ category }}" style="margin: 10px 20px;">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
     {% include "navbar.html" %}
     <div class="container mt-5">
         <div class="row">
@@ -130,7 +147,7 @@
                         </thead>
                         <tbody>
                             {% for isbn, book in cart.items() %}
-                            <tr>
+                            <tr id="cart-item-{{ isbn }}">
                                 <td>{{ book.get('title', '') }}</td>
                                 <td class="price">{{ book.get('price', 0) }}</td>
                                 <td>
@@ -143,79 +160,14 @@
                                 </td>
                                 <td class="subtotal">{{ book['price'] * book['quantity'] }}</td>
                                 <td>
-                                    <!-- Remove button: When clicked, it will remove the book -->
-                                    <form method="POST" action="{{ url_for('remove_from_cart', isbn=isbn) }}">
-                                        <button type="submit" class="btn btn-danger">Remove</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            {% for reward in rewards %}
-                            <tr>
-                                <td>{{ reward['name'] }}</td>
-                                <td>{{ reward['points'] }} points</td>
-                                <td>
-                                    <input type="number" class="form-control quantity"
-                                           name="quantities[{{ reward['name'] }}]"
-                                           value="{{ reward['quantity'] }}"
-                                           min="1" required
-                                           data-points="{{ reward['points'] }}"
-                                           oninput="updateSubtotal(this)">
-                                </td>
-                                <td class="subtotal">{{ reward['points'] * reward['quantity'] }}</td>
-                                <td>
-                                    <!-- Optionally, add a remove button for rewards here -->
+                                    <!-- Remove button with AJAX handling -->
+                                    <button type="button" class="btn btn-danger" onclick="removeFromCart('{{ isbn }}')">Remove</button>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </form>
-
-                <script>
-                    // JavaScript to handle "Remove" button click
-                    function updateCart() {
-                        let quantities = {};
-                        // Collect the updated quantities from the cart
-                        document.querySelectorAll('.quantity').forEach(input => {
-                            let isbn = input.name.split('[')[1].split(']')[0]; // Extract the ISBN from the input name
-                            quantities[isbn] = input.value;  // Store the quantity in the object
-                        });
-
-                        // Optionally, if you're removing items, collect the remove book data
-                        let removeBooks = [];
-                        document.querySelectorAll('.remove-btn').forEach(button => {
-                            if (button.checked) {
-                                removeBooks.push(button.dataset.isbn);  // Assuming you have 'data-isbn' attributes
-                            }
-                        });
-
-                        // Create a JSON object with both the updated quantities and the removed books
-                        const dataToSend = {
-                            remove_books: removeBooks,
-                            ...quantities  // Spread the quantities into the same object
-                        };
-
-                        // Make the fetch call to update the cart
-                        fetch(`/update_cart/${user_id}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'  // Ensure the content type is set to JSON
-                            },
-                            body: JSON.stringify(dataToSend)  // Convert the data into a JSON string
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                window.location.reload();  // Reload to reflect changes
-                            } else {
-                                alert(data.error);  // Show error if something went wrong
-                            }
-                        })
-                        .catch(error => console.error('Error updating cart:', error));
-                    }
-
-                </script>
 
             </div>
             <div class="col-md-4">
@@ -278,7 +230,7 @@
 
         function updateSubtotal(input) {
             let quantity = input.value;
-            let price = input.dataset.price || input.dataset.points;  // Check for 'price' or 'points'
+            let price = input.dataset.price;
             let subtotalElement = input.closest('tr').querySelector('.subtotal');
 
             // Calculate new subtotal
@@ -300,39 +252,25 @@
             document.getElementById('cart-total-final').textContent = total.toFixed(2);
         }
 
-        function updateCart() {
-            let cartData = {};
-            document.querySelectorAll('.quantity').forEach(input => {
-                let key = input.name.match(/\[(.*?)\]/)[1]; // Extract key (ISBN or reward name)
-                cartData[key] = input.value;
-            });
-
-            let userId = "{{ user_id }}";
-
-            // Show loading alert or message
-            alert("Your cart is being updated...");
-
-            fetch(`/update_cart/${userId}`, {
-                method: "POST",
+        function removeFromCart(isbn) {
+            fetch(`/remove_from_cart/${isbn}`, {
+                method: 'POST',
                 headers: {
-                    "Content-Type": "application/json"
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(cartData)
-            })
-            .then(response => response.json())
-            .then(data => {
+                body: JSON.stringify({ isbn: isbn })
+            }).then(response => {
+                return response.json();
+            }).then(data => {
                 if (data.success) {
-                    // Notify user of success
-                    alert("Cart updated successfully!");
-                    updateTotal(); // Recalculate total after update
+                    // Remove the item row from the table
+                    document.getElementById(`cart-item-${isbn}`).remove();
+                    updateTotal();  // Recalculate total after removal
                 } else {
-                    // Notify user of failure
-                    alert("Error updating cart. Please try again.");
+                    alert('Error removing item');
                 }
-            })
-            .catch(error => {
-                // Notify user if there was an issue with the request
-                alert("An error occurred while updating the cart. Please try again.");
+            }).catch(error => {
+                console.error('Error:', error);
             });
         }
     </script>

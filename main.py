@@ -976,22 +976,36 @@ def remove_from_cart(isbn):
 #     return redirect(url_for('shopping_cart', user_id=user_id))
 
 
+def calculate_total_points(cart):
+    """
+    Calculate the total points in the user's cart.
+    """
+    total_points = 0
+    for item in cart:
+        if 'points' in item and 'quantity' in item:
+            total_points += item['points'] * item['quantity']
+    return total_points
+
 @app.route('/checkout/<user_id>', methods=['GET', 'POST'])
 def checkout(user_id):
     try:
         # Fetch user data and cart
         with shelve.open(DB_FILE) as users_db:
             user_info = users_db.get(user_id)
-            if not user_info:
-                flash("User not found.", "danger")
-                return redirect(url_for('login'))
-            cart = user_info.get('Cart', [])
+        with shelve.open(DATABASE_CARTS) as carts_db:
+            cart = carts_db.get(user_id, {})
 
-        # Calculate the total price of items in the cart
-        total_price = 0
-        for item in cart:
-            if 'price' in item and 'quantity' in item:
-                total_price += item['price'] * item['quantity']
+        if not user_info:
+            flash("User not found.", "danger")
+            return redirect(url_for('login'))
+
+        cart = user_info.get('Cart', [])
+
+        # Calculate the total price
+        total_price = sum(item['price'] * item['quantity'] for item in cart if 'price' in item and 'quantity' in item)
+
+        # Calculate the total points using the new function
+        total_points = calculate_total_points(cart)
 
         if request.method == 'POST':
             return redirect(url_for('shipping', user_id=user_id))
@@ -1000,11 +1014,12 @@ def checkout(user_id):
                                user_id=user_id,
                                user_info=user_info,
                                cart=cart,
-                               total_price=total_price)
+                               total_price=total_price,
+                               total_points=total_points)  # Pass total points to template
+
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "danger")
         return redirect(url_for('shopping_cart', user_id=user_id))
-
 
 @app.route('/shipping/<user_id>', methods=['GET', 'POST'])
 def shipping(user_id):
