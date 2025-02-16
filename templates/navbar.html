@@ -18,8 +18,7 @@
         <li><a href="/rewards">Rewards Admin</a></li>
         {% endif %}
 
-        <div style="float: right;">
-            <a href="#">Cart</a> <!-- Placeholder -->
+    
             {% if session.get('user_id') %}
                 <a href="{{ url_for('logout') }}">Logout</a>
             {% else %}
