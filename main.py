@@ -637,6 +637,22 @@ def rewards():
     return render_template('rewards.html', user=user_data, rewards=rewards_list)
 
 
+@app.route('/add_reward', methods=['POST'])
+def add_reward():
+    reward_name = request.form.get('reward_name')
+    points_required = int(request.form.get('points_required'))
+    quantity = int(request.form.get('quantity'))
+    image_url = request.form.get('image_url', '')
+
+    with shelve.open(REWARDS_DB, writeback=True) as rewards_db:
+        rewards_db[reward_name] = {
+            'points': points_required,
+            'quantity': quantity,
+            'image_url': image_url
+        }
+        flash(f'Reward "{reward_name}" added successfully!', 'success')
+    return redirect(url_for('view_rewards'))
+
 @app.route('/update_image', methods=['POST'])
 def update_image():
     reward_name = request.form.get('reward_name')
